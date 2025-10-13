@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= title || "Perfume Store" %>
+  </title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <nav>
+    <div>
+      <a href="/">🏠 Home</a>
+    </div>
+    <div>
+      <% if (!user) { %>
+        <a href="/login">Login</a>
+        <a href="/register">Sign Up</a>
+        <% } else { %>
+          <span class="username">
+            <a href="/profile">👤 <%= user.name %></a>
+          </span>
+          <a href="/logout">Logout</a>
+          <% } %>
+    </div>
+  </nav>
+
+
+
+  <main>
+    <%- body %>
+  </main>
+
+  <footer>
+    <p>© 2025 Perfume Store. All rights reserved.</p>
+  </footer>
+  <% if (successMessage) { %>
+    <div id="toast" class="toast">
+      <%= successMessage %>
+    </div>
+    <script>
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.style.opacity = 1;
+        setTimeout(() => {
+          toast.style.opacity = 0;
+          setTimeout(() => toast.remove(), 500);
+        }, 1000);
+      }
+    </script>
+    <% } %>
+
+</body>
+
+</html>

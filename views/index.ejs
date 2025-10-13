@@ -1,0 +1,30 @@
+<h1>Perfumes store</h1>
+
+
+
+<form method="GET" action="/">
+  <input type="text" name="q" placeholder="Search perfume..." value="<%= q || '' %>">
+  <select name="brand">
+    <option value="">All Brands</option>
+    <% brands.forEach(b => { %>
+      <option value="<%= b._id %>" <%= brand == b._id ? 'selected' : '' %>><%= b.brandName %></option>
+    <% }) %>
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+<div class="perfume-list">
+  <% perfumes.forEach(p => { %>
+    <div class="perfume-card">
+      <a href="/perfume/<%= p._id %>">
+        <img src="<%= p.uri %>" alt="<%= p.perfumeName %>" />
+        <h3><%= p.perfumeName %></h3>
+        <p><%= p.brand ? p.brand.brandName : 'Unknown' %></p>
+        <p>🎯 <%= p.targetAudience %></p>
+        <% if (p.concentration === 'Extrait') { %>
+          <span class="badge">💎 Extrait</span>
+        <% } %>
+      </a>
+    </div>
+  <% }) %>
+</div>

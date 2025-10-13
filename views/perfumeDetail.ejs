@@ -1,0 +1,32 @@
+<a href="/">⬅️ Back</a>
+<h1><%= perfume.perfumeName %></h1>
+
+<img src="<%= perfume.uri %>" alt="<%= perfume.perfumeName %>">
+<p><b>Brand:</b> <%= perfume.brand ? perfume.brand.brandName : 'Unknown' %></p>
+<p><b>Price:</b> $<%= perfume.price %></p>
+<p><b>Concentration:</b> <%= perfume.concentration %></p>
+<p><b>Description:</b> <%= perfume.description %></p>
+<p><b>Ingredients:</b> <%= perfume.ingredients %></p>
+<p><b>Volume:</b> <%= perfume.volume %>ml</p>
+<p><b>Target Audience:</b> <%= perfume.targetAudience %></p>
+
+<h2>Comments & Ratings</h2>
+<% perfume.comments.forEach(c => { %>
+  <div class="comment">
+    <strong><%= c.author ? c.author.name : 'Anonymous' %></strong>:
+    <span><%= '⭐'.repeat(c.rating) %></span>
+    <p><%= c.content %></p>
+  </div>
+<% }) %>
+
+<% if (user) { %>
+  <form method="POST" action="/perfume/<%= perfume._id %>/feedback">
+    <label>Rating (1-3):</label>
+    <input type="number" name="rating" min="1" max="3" required>
+    <label>Comment:</label>
+    <textarea name="content" required></textarea>
+    <button type="submit">Submit Feedback</button>
+  </form>
+<% } else { %>
+  <p><a href="/login">Login to leave feedback</a></p>
+<% } %>

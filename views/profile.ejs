@@ -1,0 +1,45 @@
+<section class="profile-container">
+  <h1>👤 Thông tin cá nhân</h1>
+
+  <% if (successMessage) { %>
+    <div class="alert">
+      <%= successMessage %>
+    </div>
+  <% } %>
+
+  <form action="/profile/update" method="POST" class="form-box">
+    <label>Tên:</label>
+    <input type="text" name="name" value="<%= user ? user.name : '' %>" required>
+
+    <label>Năm sinh (YOB):</label>
+    <input type="number" name="YOB" value="<%= user && user.YOB ? user.YOB : '' %>">
+
+    <label>Giới tính:</label>
+    <select name="gender">
+      <option value="">-- Chọn giới tính --</option>
+      <option value="Nam" <%= user && user.gender === "Male" ? "selected" : "" %>>Male</option>
+      <option value="Nữ" <%= user && user.gender === "Female" ? "selected" : "" %>>Female</option>
+      <option value="Khác" <%= user && user.gender === "LGBT" ? "selected" : "" %>>LGBT</option>
+    </select>
+
+    <button type="submit">💾 Lưu thay đổi</button>
+  </form>
+
+  <hr>
+
+  <h2>🔒 Đổi mật khẩu</h2>
+  <form action="/profile/change-password" method="POST" class="form-box">
+    <label>Mật khẩu cũ:</label>
+    <input type="password" name="oldPassword" required>
+
+    <label>Mật khẩu mới:</label>
+    <input type="password" name="newPassword" required>
+
+    <button type="submit">Đổi mật khẩu</button>
+  </form>
+
+  <div class="profile-actions">
+    <a href="/" class="btn">⬅ Quay lại Trang chủ</a>
+    <a href="/logout" class="btn btn-logout">Đăng xuất</a>
+  </div>
+</section>
