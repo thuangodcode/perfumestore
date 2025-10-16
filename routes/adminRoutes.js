@@ -22,7 +22,10 @@ router.get('/dashboard', async (req, res) => {
       perfumesCount,
       brandsCount,
       membersCount,
+      successMessage: req.session.successMessage
     });
+
+    req.session.successMessage = null;
 
   } catch (err) {
     res.send('Lỗi: ' + err.message);

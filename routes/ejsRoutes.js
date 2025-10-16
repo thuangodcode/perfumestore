@@ -3,6 +3,7 @@ const Perfume = require('../models/Perfume');
 const Brand = require('../models/Brand');
 const Member = require('../models/Member');
 const bcrypt = require('bcryptjs');
+const { requireLogin } = require('../middlewares/auth');
 
 // --------------------
 // 🏠 Trang chủ
@@ -28,22 +29,126 @@ router.get('/perfume/:id', async (req, res) => {
     .populate('brand', 'brandName')
     .populate('comments.author', 'name');
 
+  // ✅ Tính trung bình rating
+  let avgRating = 0;
+  if (perfume.comments.length > 0) {
+    const total = perfume.comments.reduce((sum, c) => sum + c.rating, 0);
+    avgRating = (total / perfume.comments.length).toFixed(1);
+  }
+
   res.render('perfumeDetail', {
     title: perfume ? perfume.perfumeName : 'Perfume Detail',
     perfume,
+    user: req.session.user,
+    avgRating,
   });
+});
+
+// --------------------
+// 💬 COMMENT FEATURE
+// --------------------
+
+// 📝 Thêm bình luận
+router.post('/perfume/:perfumeId/comments', requireLogin, async (req, res) => {
+  try {
+    const { rating, content } = req.body;
+    const perfume = await Perfume.findById(req.params.perfumeId);
+    if (!perfume)
+      return res.send('<script>alert("Không tìm thấy sản phẩm!");window.history.back();</script>');
+
+    // ✅ Chặn comment nhiều lần
+    const existingComment = perfume.comments.find(
+      c => c.author.toString() === req.session.user._id.toString()
+    );
+    if (existingComment) {
+      return res.send('<script>alert("Bạn chỉ được bình luận 1 lần!");window.history.back();</script>');
+    }
+
+    // ✅ Validate rating
+    const numRating = parseInt(rating);
+    if (![1, 2, 3].includes(numRating)) {
+      return res.send('<script>alert("Rating không hợp lệ!");window.history.back();</script>');
+    }
+
+    perfume.comments.push({
+      rating: numRating,
+      content,
+      author: req.session.user._id
+    });
+
+    await perfume.save();
+    res.redirect(`/perfume/${req.params.perfumeId}`);
+  } catch (err) {
+    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
+  }
+});
+
+// ✏️ Cập nhật bình luận
+router.post('/perfume/:perfumeId/comments/:commentId/edit', requireLogin, async (req, res) => {
+  try {
+    const { rating, content } = req.body;
+    const perfume = await Perfume.findById(req.params.perfumeId);
+    if (!perfume)
+      return res.send('<script>alert("Không tìm thấy sản phẩm!");window.history.back();</script>');
+
+    const comment = perfume.comments.id(req.params.commentId);
+    if (!comment)
+      return res.send('<script>alert("Không tìm thấy bình luận!");window.history.back();</script>');
+
+    // chỉ cho phép sửa bình luận của chính mình
+    if (comment.author.toString() !== req.session.user._id.toString())
+      return res.send('<script>alert("Bạn không có quyền chỉnh sửa bình luận này!");window.history.back();</script>');
+
+    const numRating = parseInt(rating);
+    if (![1, 2, 3].includes(numRating)) {
+      return res.send('<script>alert("Rating không hợp lệ!");window.history.back();</script>');
+    }
+
+    comment.rating = numRating;
+    comment.content = content;
+
+    await perfume.save();
+    res.redirect(`/perfume/${req.params.perfumeId}`);
+  } catch (err) {
+    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
+  }
+});
+
+// ❌ Xoá bình luận
+router.post('/perfume/:perfumeId/comments/:commentId/delete', requireLogin, async (req, res) => {
+  try {
+    const perfume = await Perfume.findById(req.params.perfumeId);
+    if (!perfume)
+      return res.send('<script>alert("Không tìm thấy sản phẩm!");window.history.back();</script>');
+
+    const comment = perfume.comments.id(req.params.commentId);
+    if (!comment)
+      return res.send('<script>alert("Không tìm thấy bình luận!");window.history.back();</script>');
+
+    // chỉ cho phép xóa bình luận của chính mình
+    if (comment.author.toString() !== req.session.user._id.toString())
+      return res.send('<script>alert("Bạn không có quyền xóa bình luận này!");window.history.back();</script>');
+
+    comment.deleteOne();
+    await perfume.save();
+    res.redirect(`/perfume/${req.params.perfumeId}`);
+  } catch (err) {
+    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
+  }
 });
 
 // --------------------
 // 🔑 Login
 // --------------------
-
-router.get('/login', (req, res) =>
-  res.render('login', { title: 'Login', error: null })
-);
+router.get("/login", (req, res) => {
+  const redirectUrl = req.query.redirect || "/";
+  res.render("login", { redirectUrl });
+});
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  const redirectUrl = req.query.redirect || "/";
+
   try {
     const user = await Member.findOne({ email });
     if (!user)
@@ -53,36 +158,31 @@ router.post('/login', async (req, res) => {
     if (!isMatch)
       return res.send('<script>alert("Sai mật khẩu");window.history.back();</script>');
 
-    // ✅ Lưu user vào session
     req.session.user = { 
       _id: user._id, 
       name: user.name, 
       email: user.email,
-      isAdmin: user.isAdmin   // ✅ THÊM VÀO ĐÂY
+      isAdmin: user.isAdmin
     };
 
-    // ✅ Nếu là admin → chuyển về dashboard
     if (user.isAdmin) {
-      req.session.successMessage = "Admin login thành công!";
+      req.session.successMessage = "Admin login success!";
       return res.redirect('/admin/dashboard');
     }
 
-    // ✅ Người dùng thường quay về trang chủ
-    req.session.successMessage = "Đăng nhập thành công!";
-    res.redirect('/');
+    req.session.successMessage = "Login Success!";
+    return res.redirect(redirectUrl);
   } catch (err) {
-    res.send('<script>alert("Lỗi: ' + err.message + '");window.history.back();</script>');
+    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
   }
 });
-
-
 
 // --------------------
 // 🚪 Logout
 // --------------------
 router.get('/logout', (req, res) => {
   req.session.user = null;
-  req.session.successMessage = "Đăng xuất thành công!";
+  req.session.successMessage = "Log out success!";
   res.redirect('/');
 });
 
@@ -104,7 +204,7 @@ router.post('/register', async (req, res) => {
 
     res.send('<script>alert("Đăng ký thành công!");window.location="/login";</script>');
   } catch (err) {
-    res.send('<script>alert("Lỗi: ' + err.message + '");window.history.back();</script>');
+    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
   }
 });
 
@@ -123,8 +223,7 @@ router.get('/profile', (req, res) => {
     successMessage: req.session.successMessage
   });
 
-  req.session.successMessage = null; // xóa message sau khi hiển thị
+  req.session.successMessage = null;
 });
-
 
 module.exports = router;

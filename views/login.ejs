@@ -1,3 +1,5 @@
+<% const redirect = typeof redirectUrl !== 'undefined' ? redirectUrl : '' %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +18,7 @@
           <p>Sign in to your account to continue</p>
         </div>
 
-        <form method="POST" action="/login">
+        <form method="POST" action="/login<%= redirect ? ('?redirect=' + redirect) : '' %>">
           <div class="form-group">
             <label for="email">Email</label>
             <input 

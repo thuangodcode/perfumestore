@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const express = require('express');
 const session = require('express-session');
+const flash = require('connect-flash');
 const expressLayouts = require('express-ejs-layouts');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -37,6 +38,8 @@ app.use(
   })
 );
 
+app.use(flash());
+
 // static files
 app.use(express.static(path.join(__dirname, './public')));
 
@@ -45,10 +48,10 @@ app.use(express.static(path.join(__dirname, './public')));
    - đặt res.locals ở đây để mọi view có thể dùng
    --------------------------- */
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  res.locals.successMessage = req.session.successMessage || null;
+  res.locals.successMessage = req.flash('success'); // success
+  res.locals.errorMessage = req.flash('error');     // error
   next();
-});
+})
 
 /* ---------------------------
    Import routes

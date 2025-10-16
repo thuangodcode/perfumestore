@@ -25,3 +25,16 @@ exports.isSelf = (req, res, next) => {
   if (req.user.id === req.params.id) return next();
   return res.status(403).json({ msg: 'Forbidden: can only modify own account' });
 };
+
+// middleware/requireLogin.js
+exports.requireLogin = (req, res, next) => {
+  if (req.session.user) return next(); // đã đăng nhập → cho qua
+
+  // ❗ Lưu URL mà user định truy cập
+  req.session.returnTo = req.originalUrl;
+
+  // Chuyển đến trang đăng nhập
+  res.redirect('/login');
+};
+
+

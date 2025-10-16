@@ -47,3 +47,25 @@ exports.deleteComment = async (req, res) => {
   await perfume.save();
   res.json({ msg: 'Deleted' });
 };
+
+exports.showPerfumeDetail = async (req, res) => {
+  const perfume = await Perfume.findById(req.params.id)
+    .populate('brand')
+    .populate('comments.author'); // để hiện tên người comment
+
+  if (!perfume) return res.status(404).render('404');
+
+  // Tính trung bình rating
+  let avgRating = 0;
+  if (perfume.comments.length > 0) {
+    const sum = perfume.comments.reduce((acc, c) => acc + c.rating, 0);
+    avgRating = (sum / perfume.comments.length).toFixed(1);
+  }
+
+  res.render('perfumeDetail', {
+    perfume,
+    avgRating,
+    user: req.user || null,
+  });
+};
+

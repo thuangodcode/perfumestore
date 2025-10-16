@@ -4,32 +4,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <%= title || "Perfume Store" %>
-  </title>
+  <title><%= title || "Perfume Store" %></title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
   <nav>
     <div>
-      <!-- ✅ Ẩn Home nếu là admin -->
       <% if (!(user && user.isAdmin)) { %>
         <li><a href="/">Home</a></li>
-        <% } %>
-
+      <% } %>
     </div>
 
     <div>
       <% if (!user) { %>
         <a href="/login">Login</a>
         <a href="/register">Sign Up</a>
-        <% } else { %>
-          <span class="username">
-            <a href="/profile">👤 <%= user.name %></a>
-          </span>
-          <a href="/" class="btn-logout" onclick="confirmLogout(event)">Đăng xuất</a>
-          <% } %>
+      <% } else { %>
+        <span class="username">
+          <a href="/profile"><%= user.name %></a>
+        </span>
+        <!-- Enhanced logout button -->
+        <a href="#" class="btn-logout" onclick="openLogoutModal(event)">Logout</a>
+      <% } %>
     </div>
   </nav>
 
@@ -41,22 +38,81 @@
     <p>© 2025 Perfume Store. All rights reserved.</p>
   </footer>
 
-  <% if (successMessage) { %>
-    <div id="toast" class="toast">
+  <!-- ✅ Toast notification for success message -->
+  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div id="toast-success" class="toast">
       <%= successMessage %>
     </div>
     <script>
-      const toast = document.getElementById('toast');
-      if (toast) {
-        toast.style.opacity = 1;
+      const toastSuccess = document.getElementById('toast-success');
+      if (toastSuccess) {
+        toastSuccess.style.opacity = '1';
         setTimeout(() => {
-          toast.style.opacity = 0;
-          setTimeout(() => toast.remove(), 500);
-        }, 1000);
+          toastSuccess.style.opacity = '0';
+          setTimeout(() => toastSuccess.remove(), 500);
+        }, 3000);
       }
     </script>
-    <% } %>
+  <% } %>
 
+  <!-- ✅ Toast notification for error message -->
+  <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+    <div id="toast-error" class="toast error">
+      <%= errorMessage %>
+    </div>
+    <script>
+      const toastError = document.getElementById('toast-error');
+      if (toastError) {
+        toastError.style.opacity = '1';
+        setTimeout(() => {
+          toastError.style.opacity = '0';
+          setTimeout(() => toastError.remove(), 500);
+        }, 3000);
+      }
+    </script>
+  <% } %>
+
+  <!-- Logout Modal -->
+  <div id="logoutModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirm Logout</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout from the system?</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+        <button class="btn-confirm danger" onclick="confirmLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    function confirmLogout() {
+      window.location.href = '/logout';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('logoutModal').addEventListener('click', (e) => {
+      if (e.target.id === 'logoutModal') closeLogoutModal();
+    });
+
+    // ESC to close modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLogoutModal();
+    });
+  </script>
 </body>
-
 </html>
