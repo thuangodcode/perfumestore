@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register - Perfume Store</title>
   <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
   <nav>
     <div>
@@ -27,60 +29,35 @@
         <form method="POST" action="/register">
           <div class="form-group">
             <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              placeholder="you@example.com"
-              required 
-              autocomplete="email"
-            >
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
           </div>
 
           <div class="form-group">
             <label for="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              placeholder="Create a strong password"
-              required 
-              autocomplete="new-password"
-            >
+            <input type="password" id="password" name="password" placeholder="Create a strong password" required
+              autocomplete="new-password">
           </div>
 
           <div class="form-group">
             <label for="name">Name</label>
-            <input 
-              type="text" 
-              id="name" 
-              name="name" 
-              placeholder="Your full name"
-              autocomplete="name"
-            >
+            <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name">
           </div>
 
           <div class="form-group">
             <label for="YOB">Year of Birth</label>
-            <input 
-              type="number" 
-              id="YOB" 
-              name="YOB" 
-              placeholder="1990"
-              min="1900" 
-              max="2024"
-              autocomplete="bday-year"
-            >
+            <input type="number" id="YOB" name="YOB" placeholder="1990" min="1900" max="2024" autocomplete="bday-year">
           </div>
 
           <div class="form-group">
             <label for="gender">Gender</label>
-            <select id="gender" name="gender">
+            <select id="gender" name="gender">    
               <option value="">Select gender</option>
-              <option value="true">Male</option>
-              <option value="false">Female</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="LGBT">LGBT</option>
             </select>
           </div>
+
 
           <button type="submit">Create Account</button>
         </form>
@@ -96,4 +73,5 @@
     <p>© 2025 Perfume Store. All rights reserved.</p>
   </footer>
 </body>
+
 </html>

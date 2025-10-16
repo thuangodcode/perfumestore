@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+
+    form label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+    form input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <a href="/admin/brands" class="btn-back">&larr; Back</a>
+    <h1>Add New Brand</h1>
+
+    <form action="/admin/brands/add" method="POST">
+      <label>Brand Name</label>
+      <input type="text" name="brandName" required>
+      <button type="submit">Add Brand</button>
+    </form>
+  </div>
+</body>
+</html>

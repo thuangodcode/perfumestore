@@ -61,10 +61,12 @@ const commentRouter = require('./routes/comment');
 const memberRouter = require('./routes/member'); // API members (JSON)
 const ejsRoutes = require('./routes/ejsRoutes'); // trang EJS chính
 const profileRoute = require('./routes/profileRoute');
+const adminRoutes = require('./routes/adminRoutes');
 
 app.use((req, res, next) => {
   res.locals.title = "Perfume Store"; // tiêu đề mặc định
   res.locals.user = req.session.user || null;
+  res.locals.admin = req.session.admin || null;
   res.locals.successMessage = req.session.successMessage || null;
   next();
 });
@@ -82,6 +84,12 @@ app.use('/api/members', memberRouter);
 
 app.use('/profile', profileRoute); // EJS profile routes (session-based)
 app.use('/', ejsRoutes); // routes render trang chủ, login, register...
+app.use('/admin', adminRoutes);
+
+
+
+app.use('/api/v1/auth', require('./routes/apiAuth'));
+
 
 /* ---------------------------
    Start server

@@ -37,6 +37,7 @@ router.get('/perfume/:id', async (req, res) => {
 // --------------------
 // 🔑 Login
 // --------------------
+
 router.get('/login', (req, res) =>
   res.render('login', { title: 'Login', error: null })
 );
@@ -53,13 +54,28 @@ router.post('/login', async (req, res) => {
       return res.send('<script>alert("Sai mật khẩu");window.history.back();</script>');
 
     // ✅ Lưu user vào session
-    req.session.user = { _id: user._id, name: user.name, email: user.email };
+    req.session.user = { 
+      _id: user._id, 
+      name: user.name, 
+      email: user.email,
+      isAdmin: user.isAdmin   // ✅ THÊM VÀO ĐÂY
+    };
+
+    // ✅ Nếu là admin → chuyển về dashboard
+    if (user.isAdmin) {
+      req.session.successMessage = "Admin login thành công!";
+      return res.redirect('/admin/dashboard');
+    }
+
+    // ✅ Người dùng thường quay về trang chủ
     req.session.successMessage = "Đăng nhập thành công!";
     res.redirect('/');
   } catch (err) {
     res.send('<script>alert("Lỗi: ' + err.message + '");window.history.back();</script>');
   }
 });
+
+
 
 // --------------------
 // 🚪 Logout
