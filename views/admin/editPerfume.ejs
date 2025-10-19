@@ -55,15 +55,17 @@
         </div>
 
         <div class="form-group">
-          <label for="concentration">Concentration</label>
-          <input 
-            type="text" 
-            id="concentration" 
-            name="concentration" 
-            value="<%= perfume.concentration %>" 
-            placeholder="EDP, EDT, Parfum..."
-          />
-        </div>
+  <label for="concentration">Concentration</label>
+  <select id="concentration" name="concentration" required>
+    <option value="Extrait" <%= perfume.concentration === "Extrait" ? "selected" : "" %>>Extrait</option>
+    <option value="EDP" <%= perfume.concentration === "EDP" ? "selected" : "" %>>EDP (Eau de Parfum)</option>
+    <option value="EDT" <%= perfume.concentration === "EDT" ? "selected" : "" %>>EDT (Eau de Toilette)</option>
+    <option value="EDC" <%= perfume.concentration === "EDC" ? "selected" : "" %>>EDC (Eau de Cologne)</option>
+    <option value="Eau Fraiche" <%= perfume.concentration === "Eau Fraiche" ? "selected" : "" %>>Eau Fraiche</option>
+    <option value="Body Mist" <%= perfume.concentration === "Body Mist" ? "selected" : "" %>>Body Mist</option>
+  </select>
+</div>
+
 
          
         <div class="form-group">
@@ -97,8 +99,7 @@
     </div>
   </div>
 
-   Save Confirmation Modal 
-   Translated save confirmation modal to English 
+   
   <div id="saveModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -114,8 +115,7 @@
     </div>
   </div>
 
-   Logout Confirmation Modal 
-   Translated logout confirmation modal to English 
+   
   <div id="logoutModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">

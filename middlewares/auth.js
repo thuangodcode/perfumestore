@@ -37,4 +37,24 @@ exports.requireLogin = (req, res, next) => {
   res.redirect('/login');
 };
 
+// middlewares/auth.js
+exports.blockAdminFromUserPages = (req, res, next) => {
+  const user = req.session.user;
+
+  if (!user) return next();
+  if (req.originalUrl === '/logout') return next();
+
+  if (user.isAdmin) {
+    if (req.originalUrl.startsWith('/admin') || req.originalUrl.startsWith('/profile')) {
+      return next();
+    }
+    return res.redirect('/admin/dashboard'); // giữ nguyên, flash xử lý ở dashboard
+  }
+
+  next();
+};
+
+
+
+
 

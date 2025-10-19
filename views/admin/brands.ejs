@@ -16,26 +16,23 @@
         <h1 style="margin-bottom: 20px;">Brand List</h1> 
     </div>
 
-    <div class="stats-grid" style="margin-top: 10px;">
-        <div class="stat-card">
-            <h3><a href="/admin/dashboard" style="text-decoration: none; color: inherit;">Total Products</a></h3>           
-            <div class="stat-value">
-                <%= perfumesCount %>
-            </div>
-        </div>
-        <div class="stat-card">
-            <h3><a href="/admin/brands" style="text-decoration: none; color: inherit;">Total Brands</a></h3>
-            <div class="stat-value">
-                <%= brandsCount %>
-            </div>
-        </div>
-        <div class="stat-card">
-            <h3>Total Members</h3>
-            <div class="stat-value">
-                <%= membersCount %>
-            </div>
-        </div>
-    </div>
+    <div class="stats-grid">
+  <div class="stat-card" onclick="window.location.href='/admin/dashboard'"> 
+    <h3>Total Products</h3>
+    <div class="stat-value"><%= perfumesCount %></div>
+  </div>
+
+  <div class="stat-card" onclick="window.location.href='/admin/brands'">
+    <h3>Total Brands</h3>
+    <div class="stat-value"><%= brandsCount %></div>
+  </div>
+
+  <div class="stat-card" onclick="window.location.href='/admin/members'">
+    <h3>Total Members</h3>
+    <div class="stat-value"><%= membersCount %></div>
+  </div>
+</div>
+
 
   <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
   <a href="/admin/brands/add" class="btn-add"

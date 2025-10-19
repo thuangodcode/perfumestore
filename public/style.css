@@ -659,6 +659,11 @@ textarea:focus {
   background-color: #1a1a1a;
 }
 
+.stat-card {
+  cursor: pointer;
+}
+
+
 /* Alert Messages */
 .alert-success {
   background-color: #0a3d0a;
@@ -699,6 +704,7 @@ textarea:focus {
   transition: opacity 0.3s ease-in-out;
   max-width: 400px;
   animation: slideInRight 0.3s ease-out;
+  z-index: 9999; /* ✅ Quan trọng */
 }
 
 * Average Rating Display */
@@ -846,11 +852,7 @@ textarea:focus {
   }
 }
 
-.toast.error {
-  background-color: #3d0a0a;
-  border-color: #5d1a1a;
-  color: #ff4444;
-}
+
 
 /* Perfume Detail Page */
 .back-button {
@@ -1142,6 +1144,170 @@ textarea:focus {
       cursor: pointer;
       transition: background-color 0.2s;
     }
+
+
+    
+/* Member List Page Specific Styles */
+.members-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #262626;
+}
+
+.members-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.filter-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.filter-group select {
+  padding: 0.625rem 1rem;
+  border-radius: 6px;
+  width: 180px;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  border: 1px solid #262626;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.filter-group select:hover {
+  border-color: #404040;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #ffffff;
+  background-color: #000000;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #262626;
+  color: #fbbf24;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 0.5rem;
+}
+
+.admin-badge::before {
+  content: "★";
+}
+
+.banned-section {
+  margin-top: 3rem;
+}
+
+.banned-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.banned-table-container {
+  background-color: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.banned-table-container table {
+  width: 100%;
+}
+
+.delete-reason-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  background-color: #000000;
+  border: 1px solid #262626;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  min-height: 100px;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.delete-reason-input:focus {
+  outline: none;
+  border-color: #ffffff;
+  background-color: #0a0a0a;
+}
+
+.delete-reason-input::placeholder {
+  color: #666666;
+}
+
+.modal-body p {
+  margin-bottom: 1rem;
+}
+
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #262626;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #262626;
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #1a1a1a;
+  border-color: #404040;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  color: #888888;
+  font-size: 0.875rem;
+  margin: 0 1rem;
+}
 
 /* Responsive */
 @media (max-width: 768px) {

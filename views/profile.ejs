@@ -16,7 +16,7 @@
         <h1>User Profile</h1>
 
         <!-- Added typeof check to prevent undefined variable errors -->
-        <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+        <!-- <% if (typeof successMessage !== 'undefined' && successMessage) { %>
           <div class="alert-success">
             <%= successMessage %>
           </div>
@@ -26,7 +26,7 @@
           <div class="alert-error">
             <%= errorMessage %>
           </div>
-        <% } %>
+        <% } %> -->
 
         <!-- Profile Information Form -->
         <form action="/profile/update" method="POST" id="profileForm">

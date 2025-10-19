@@ -31,3 +31,39 @@ exports.changePassword = async (req, res) => {
   await user.save();
   res.json({ msg: 'Password changed' });
 };
+
+exports.getMembersPage = async (req, res) => {
+  try {
+    const activeMembers = await Member.find({ isDeleted: false }).select('-password');
+    const deletedMembers = await Member.find({ isDeleted: true }).select('-password');
+
+    const perfumesCount = await Perfume.countDocuments();
+    const brandsCount = await Brand.countDocuments();
+    const membersCount = await Member.countDocuments();
+
+    res.render('members', {
+      title: 'Member List',
+      members: activeMembers,
+      deletedMembers,
+      perfumesCount,
+      brandsCount,
+      membersCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.restoreMember = async (req, res) => {
+  try {
+    await Member.findByIdAndUpdate(req.params.id, {
+      isDeleted: false,
+      deleteReason: ''
+    });
+    res.redirect('/admin/members');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error restoring member');
+  }
+};

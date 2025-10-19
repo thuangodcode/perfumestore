@@ -18,20 +18,23 @@
       </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total Products</h3>
-        <div class="stat-value"><%= perfumesCount %></div>
-      </div>
-      <div class="stat-card">
-        <h3><a href="/admin/brands" style="text-decoration: none; color: inherit;">Total Brands</a></h3>
-        <div class="stat-value"><%= brandsCount %></div>
-      </div>
-      <div class="stat-card">
-        <h3>Total Members</h3>
-        <div class="stat-value"><%= membersCount %></div>
-      </div>
-    </div>
+   <div class="stats-grid">
+  <div class="stat-card" onclick="window.location.href='/admin/dashboard'"> 
+    <h3>Total Products</h3>
+    <div class="stat-value"><%= perfumesCount %></div>
+  </div>
+
+  <div class="stat-card" onclick="window.location.href='/admin/brands'">
+    <h3>Total Brands</h3>
+    <div class="stat-value"><%= brandsCount %></div>
+  </div>
+
+  <div class="stat-card" onclick="window.location.href='/admin/members'">
+    <h3>Total Members</h3>
+    <div class="stat-value"><%= membersCount %></div>
+  </div>
+</div>
+
 
     <div class="table-container">
       <div class="table-header">

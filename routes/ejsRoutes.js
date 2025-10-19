@@ -138,53 +138,72 @@ router.post('/perfume/:perfumeId/comments/:commentId/delete', requireLogin, asyn
 });
 
 // --------------------
+// --------------------
 // 🔑 Login
 // --------------------
 router.get("/login", (req, res) => {
   const redirectUrl = req.query.redirect || "/";
-  res.render("login", { redirectUrl });
+  res.render("login", {
+    redirectUrl,
+    successMessage: req.flash('success'),
+    errorMessage: req.flash('error')
+  });
 });
 
+// POST /login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const redirectUrl = req.query.redirect || "/";
 
   try {
     const user = await Member.findOne({ email });
-    if (!user)
-      return res.send('<script>alert("Email không tồn tại");window.history.back();</script>');
+    if (!user) {
+      req.flash('error', 'Email không tồn tại');
+      return res.redirect("/login");
+    }
+
+    if (user.isDeleted) {
+      req.flash('error', `Tài khoản đã bị khoá. Lý do: ${user.deleteReason || 'Không xác định'}`);
+      return res.redirect("/login");
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.send('<script>alert("Sai mật khẩu");window.history.back();</script>');
+    if (!isMatch) {
+      req.flash('error', 'Sai mật khẩu');
+      return res.redirect("/login");
+    }
 
-    req.session.user = { 
-      _id: user._id, 
-      name: user.name, 
+    // ✅ Lưu session
+    req.session.user = {
+      _id: user._id,
+      name: user.name,
       email: user.email,
       isAdmin: user.isAdmin
     };
 
-    if (user.isAdmin) {
-      req.session.successMessage = "Admin login success!";
-      return res.redirect('/admin/dashboard');
-    }
+    // ✅ Flash message
+    req.flash('success', user.isAdmin ? 'Admin login success!' : 'Login success!');
 
-    req.session.successMessage = "Login Success!";
-    return res.redirect(redirectUrl);
+    // ✅ Redirect
+    return user.isAdmin ? res.redirect('/admin/dashboard') : res.redirect(redirectUrl);
+
   } catch (err) {
-    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
+    req.flash('error', `Lỗi: ${err.message}`);
+    return res.redirect("/login");
   }
 });
+
+
 
 // --------------------
 // 🚪 Logout
 // --------------------
 router.get('/logout', (req, res) => {
   req.session.user = null;
-  req.session.successMessage = "Log out success!";
+  req.flash('success', 'Logout Successful!');
   res.redirect('/');
 });
+
 
 // --------------------
 // 📝 Đăng ký

@@ -9,99 +9,82 @@ const expressLayouts = require('express-ejs-layouts');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+// ✅ IMPORT middleware
+const { blockAdminFromUserPages } = require('./middlewares/auth');
+const { requireAdminSession } = require('./middlewares/adminSession');
+
 const app = express();
 
-/* ---------------------------
-   Cấu hình view + layouts
-   --------------------------- */
+/* View Engine */
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, './views'));
-
 app.use(expressLayouts);
-app.set('layout', 'layout'); // layout.ejs trong thư mục views
+app.set('layout', 'layout');
 
-/* ---------------------------
-   Middlewares (thứ tự quan trọng)
-   - parsers trước session nếu bạn cần đọc body để tạo session
-   - session trước middleware gán res.locals.user
-   --------------------------- */
+/* Middlewares */
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // để nhận form POST
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'perfume-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // secure: true khi dùng HTTPS
+    cookie: { secure: false }
   })
 );
 
 app.use(flash());
-
-// static files
 app.use(express.static(path.join(__dirname, './public')));
 
-/* ---------------------------
-   Globals cho EJS
-   - đặt res.locals ở đây để mọi view có thể dùng
-   --------------------------- */
+/* Gán biến toàn cục cho EJS */
 app.use((req, res, next) => {
-  res.locals.successMessage = req.flash('success'); // success
-  res.locals.errorMessage = req.flash('error');     // error
+  res.locals.title = "Perfume Store";
+  res.locals.user = req.session.user || null;
+  res.locals.admin = req.session.admin || null;
+  res.locals.successMessage = req.flash('success');
+  res.locals.errorMessage = req.flash('error');
   next();
-})
+});
 
-/* ---------------------------
-   Import routes
-   --------------------------- */
+/* Import Routes */
 const brandRouter = require('./routes/brand');
 const perfumeRouter = require('./routes/perfume');
 const authRouter = require('./routes/auth');
 const collectorRouter = require('./routes/collector');
 const commentRouter = require('./routes/comment');
-const memberRouter = require('./routes/member'); // API members (JSON)
-const ejsRoutes = require('./routes/ejsRoutes'); // trang EJS chính
+const memberRouter = require('./routes/member');
+
+const ejsRoutes = require('./routes/ejsRoutes');
 const profileRoute = require('./routes/profileRoute');
 const adminRoutes = require('./routes/adminRoutes');
 
-app.use((req, res, next) => {
-  res.locals.title = "Perfume Store"; // tiêu đề mặc định
-  res.locals.user = req.session.user || null;
-  res.locals.admin = req.session.admin || null;
-  res.locals.successMessage = req.session.successMessage || null;
-  next();
-});
-
-
-/* ---------------------------
-   Mount routes (sau khi mọi middleware đã sẵn sàng)
-   --------------------------- */
+/* ✅ API Routes */
 app.use('/api/brands', brandRouter);
 app.use('/api/perfumes', perfumeRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/collectors', collectorRouter);
-app.use('/api/perfumes', commentRouter); // comments nested under perfumes
+app.use('/api/perfumes', commentRouter);
 app.use('/api/members', memberRouter);
-
-app.use('/profile', profileRoute); // EJS profile routes (session-based)
-app.use('/', ejsRoutes); // routes render trang chủ, login, register...
-app.use('/admin', adminRoutes);
-
-
-
 app.use('/api/v1/auth', require('./routes/apiAuth'));
 
+/* ✅ Chặn ADMIN vào trang người dùng (chạy TRƯỚC ejsRoutes và profileRoute) */
+app.use(blockAdminFromUserPages);
 
-/* ---------------------------
-   Start server
-   --------------------------- */
+/* ✅ Routes dành cho USER */
+app.use('/profile', profileRoute);
+app.use('/', ejsRoutes);
+
+/* ✅ Routes dành cho ADMIN (bảo vệ bởi requireAdminSession) */
+app.use('/admin', requireAdminSession, adminRoutes);
+
+/* Start Server */
 const PORT = process.env.PORT || 5000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');
-    app.listen(PORT, () => console.log('Server running on', PORT));
+    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
   })
   .catch((err) => console.error(err));

@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
 
   <div class="admin-container">
     <a href="/admin/dashboard" class="btn-back">&larr; Back</a>
-    
+
     <h1>Add New Product</h1>
     <form action="/admin/perfumes/add" method="POST">
       <label>Product Name</label>
@@ -22,7 +26,15 @@
       <input type="number" name="price" required>
 
       <label>Concentration</label>
-      <input type="text" name="concentration" required>
+      <select name="concentration" required>
+        <option value="Extrait">Extrait</option>
+        <option value="EDP">EDP (Eau de Parfum)</option>
+        <option value="EDT">EDT (Eau de Toilette)</option>
+        <option value="EDC">EDC (Eau de Cologne)</option>
+        <option value="Eau Fraiche">Eau Fraiche</option>
+        <option value="Body Mist">Body Mist</option>
+      </select>
+
 
       <label>Description</label>
       <textarea name="description" required></textarea>
@@ -42,9 +54,11 @@
 
       <label>Brand</label>
       <select name="brand" required>
-        <% brands.forEach(b => { %>
-          <option value="<%= b._id %>"><%= b.brandName %></option>
-        <% }) %>
+        <% brands.forEach(b=> { %>
+          <option value="<%= b._id %>">
+            <%= b.brandName %>
+          </option>
+          <% }) %>
       </select>
 
       <button type="submit">Add Product</button>
@@ -52,4 +66,5 @@
   </div>
 
 </body>
+
 </html>

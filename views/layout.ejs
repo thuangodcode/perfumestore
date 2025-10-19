@@ -37,40 +37,46 @@
   <footer>
     <p>© 2025 Perfume Store. All rights reserved.</p>
   </footer>
+<!-- ✅ Toast notification for success message -->
+<%
+  const successText = Array.isArray(successMessage) ? successMessage[0] : successMessage;
+  if (typeof successText === 'string' && successText.trim().length > 0) {
+%>
+  <div id="toast-success" class="toast">
+    <%= successText %>
+  </div>
+  <script>
+    const toastSuccess = document.getElementById('toast-success');
+    if (toastSuccess) {
+      toastSuccess.style.opacity = '1';
+      setTimeout(() => {
+        toastSuccess.style.opacity = '0';
+        setTimeout(() => toastSuccess.remove(), 500);
+      }, 3000);
+    }
+  </script>
+<% } %>
 
-  <!-- ✅ Toast notification for success message -->
-  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
-    <div id="toast-success" class="toast">
-      <%= successMessage %>
-    </div>
-    <script>
-      const toastSuccess = document.getElementById('toast-success');
-      if (toastSuccess) {
-        toastSuccess.style.opacity = '1';
-        setTimeout(() => {
-          toastSuccess.style.opacity = '0';
-          setTimeout(() => toastSuccess.remove(), 500);
-        }, 3000);
-      }
-    </script>
-  <% } %>
+<!-- ✅ Toast notification for error message -->
+<%
+  const errorText = Array.isArray(errorMessage) ? errorMessage[0] : errorMessage;
+  if (typeof errorText === 'string' && errorText.trim().length > 0) {
+%>
+  <div id="toast-error" class="toast error">
+    <%= errorText %>
+  </div>
+  <script>
+    const toastError = document.getElementById('toast-error');
+    if (toastError) {
+      toastError.style.opacity = '1';
+      setTimeout(() => {
+        toastError.style.opacity = '0';
+        setTimeout(() => toastError.remove(), 500);
+      }, 3000);
+    }
+  </script>
+<% } %>
 
-  <!-- ✅ Toast notification for error message -->
-  <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
-    <div id="toast-error" class="toast error">
-      <%= errorMessage %>
-    </div>
-    <script>
-      const toastError = document.getElementById('toast-error');
-      if (toastError) {
-        toastError.style.opacity = '1';
-        setTimeout(() => {
-          toastError.style.opacity = '0';
-          setTimeout(() => toastError.remove(), 500);
-        }, 3000);
-      }
-    </script>
-  <% } %>
 
   <!-- Logout Modal -->
   <div id="logoutModal" class="modal-overlay">

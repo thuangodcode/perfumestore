@@ -12,6 +12,8 @@ const memberSchema = new Schema({
     default: ""
   },
   isAdmin: { type: Boolean, default: false },
+  isDeleted: { type: Boolean, default: false },
+  deleteReason: { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Members', memberSchema);

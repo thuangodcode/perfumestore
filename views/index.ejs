@@ -5,26 +5,36 @@
     <input type="text" name="q" placeholder="Search perfume..." value="<%= q || '' %>" class="search-input">
     <select name="brand" class="brand-select small-select">
       <option value="">All Brands</option>
-      <% brands.forEach(b => { %>
-        <option value="<%= b._id %>" <%= brand == b._id ? 'selected' : '' %>><%= b.brandName %></option>
-      <% }) %>
+      <% brands.forEach(b=> { %>
+        <option value="<%= b._id %>" <%=brand==b._id ? 'selected' : '' %>><%= b.brandName %>
+        </option>
+        <% }) %>
     </select>
     <button type="submit" class="filter-btn">Filter</button>
   </div>
 </form>
 
 <div class="perfume-list">
-  <% perfumes.forEach(p => { %>
+  <% perfumes.forEach(p=> { %>
     <div class="perfume-card">
       <a href="/perfume/<%= p._id %>">
         <img src="<%= p.uri %>" alt="<%= p.perfumeName %>" />
-        <h3><%= p.perfumeName %></h3>
-        <p><%= p.brand ? p.brand.brandName : 'Unknown' %></p>
-        <p><%= p.targetAudience %></p>
-        <% if (p.concentration === 'Extrait') { %>
-          <span class="badge">Extrait</span>
-        <% } %>
+        <h3>
+          <%= p.perfumeName %>
+        </h3>
+        <p>
+          <%= p.brand ? p.brand.brandName : 'Unknown' %>
+        </p>
+        <p>
+          <%= p.targetAudience %>
+        </p>
+        <% if (p.concentration) { %>
+          <span class="badge">
+            <%= p.concentration %>
+          </span>
+          <% } %>
+
       </a>
     </div>
-  <% }) %>
+    <% }) %>
 </div>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <div class="admin-container">
+    <!-- Improved header with proper styling -->
+    <div class="members-header">
+      <h1>Member Management</h1>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card" onclick="window.location.href='/admin/dashboard'">
+        <h3>Total Products</h3>
+        <div class="stat-value"><%= perfumesCount %></div>
+      </div>
+
+      <div class="stat-card" onclick="window.location.href='/admin/brands'">
+        <h3>Total Brands</h3>
+        <div class="stat-value"><%= brandsCount %></div>
+      </div>
+
+      <div class="stat-card" onclick="window.location.href='/admin/members'">
+        <h3>Total Members</h3>
+        <div class="stat-value"><%= membersCount %></div>
+      </div>
+    </div>
+
+    <!-- Active Members Table -->
+    <div class="table-container">
+      <div class="table-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <h2>Active Members</h2>
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div class="search-group">
+              <input type="text" id="emailSearch" placeholder="Search by email...">
+            </div>
+            <div class="filter-group">
+              <label for="genderFilter">Filter by Gender:</label>
+              <select id="genderFilter">
+                <option value="all">All</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="LGBT">LGBT</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Year of Birth</th>
+            <th>Gender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="activeMembersBody">
+          <% if (members && members.length > 0) { %>
+            <% members.forEach(m => { %>
+              <tr class="member-row" data-email="<%= m.email || '' %>">
+                <td>
+                  <strong>
+                    <%= m.name || 'N/A' %>
+                    <% if (m.isAdmin) { %>
+                      <span class="admin-badge">Admin</span>
+                    <% } %>
+                  </strong>
+                </td>
+                <td><%= m.email || 'N/A' %></td>
+                <td><%= m.YOB || 'N/A' %></td>
+                <td><%= m.gender || 'N/A' %></td>
+                <td>
+                  <div class="action-buttons">
+                    <button type="button" class="btn-delete" data-id="<%= m._id %>" data-name="<%= m.name %>">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 2rem; color: #888888;">
+                No members available
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button id="prevBtn" onclick="previousPage('active')">Previous</button>
+        <span class="page-info">
+          Page <span id="currentPageActive">1</span> of <span id="totalPagesActive">1</span>
+        </span>
+        <button id="nextBtn" onclick="nextPage('active')">Next</button>
+      </div>
+    </div>
+
+   <!-- Banned Members Table -->
+<div class="table-container">
+  <div class="table-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <h2>Banned Members</h2>
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div class="search-group">
+          <input type="text" id="bannedEmailSearch" placeholder="Search by email...">
+        </div>
+        <div class="filter-group">
+          <label for="bannedGenderFilter">Filter by Gender:</label>
+          <select id="bannedGenderFilter">
+            <option value="all">All</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="LGBT">LGBT</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Reason</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="bannedMembersBody">
+      <% if (deletedMembers && deletedMembers.length > 0) { %>
+        <% deletedMembers.forEach(m => { %>
+          <tr class="banned-row" data-email="<%= m.email || '' %>" data-gender="<%= m.gender || '' %>">
+            <td><strong><%= m.name %></strong></td>
+            <td><%= m.email %></td>
+            <td><%= m.deleteReason || 'N/A' %></td>
+            <td>
+              <form method="POST" action="/admin/members/restore/<%= m._id %>" style="display: inline;">
+                <button type="submit" class="btn-edit">Restore</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 2rem; color: #888888;">
+            No banned members
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button id="prevBannedBtn" onclick="previousPage('banned')">Previous</button>
+    <span class="page-info">
+      Page <span id="currentPageBanned">1</span> of <span id="totalPagesBanned">1</span>
+    </span>
+    <button id="nextBannedBtn" onclick="nextPage('banned')">Next</button>
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirm Delete Member</h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteMessage"></p>
+        <label for="deleteReason" style="display: block; margin-bottom: 0.5rem;">Reason for deletion:</label>
+        <textarea id="deleteReason" class="delete-reason-input" placeholder="Enter the reason for deleting this member..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+        <button class="btn-confirm danger" id="confirmDeleteBtn">Delete Member</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ITEMS_PER_PAGE = 7;
+    let currentPageActive = 1;
+    let currentPageBanned = 1;
+    let filteredActiveMembersData = [];
+    let filteredBannedMembersData = [];
+
+    function initializePagination() {
+      const allActiveRows = document.querySelectorAll('#activeMembersBody .member-row');
+      const allBannedRows = document.querySelectorAll('#bannedMembersBody .banned-row');
+      
+      filteredActiveMembersData = Array.from(allActiveRows);
+      filteredBannedMembersData = Array.from(allBannedRows);
+      
+      updateActiveMembersDisplay();
+      updateBannedMembersDisplay();
+    }
+
+    function filterAndPaginateActive() {
+      const searchTerm = document.getElementById('emailSearch').value.toLowerCase();
+      const genderFilter = document.getElementById('genderFilter').value.toLowerCase();
+      const allRows = document.querySelectorAll('#activeMembersBody .member-row');
+      
+      filteredActiveMembersData = Array.from(allRows).filter(row => {
+        const email = row.getAttribute('data-email').toLowerCase();
+        const gender = row.children[3].textContent.trim().toLowerCase();
+        
+        const emailMatch = email.includes(searchTerm);
+        const genderMatch = genderFilter === 'all' || gender === genderFilter;
+        
+        return emailMatch && genderMatch;
+      });
+      
+      currentPageActive = 1;
+      updateActiveMembersDisplay();
+    }
+
+    function filterAndPaginateBanned() {
+  const searchTerm = document.getElementById('bannedEmailSearch').value.toLowerCase();
+  const genderFilter = document.getElementById('bannedGenderFilter').value.toLowerCase();
+  const allRows = document.querySelectorAll('#bannedMembersBody .banned-row');
+
+  filteredBannedMembersData = Array.from(allRows).filter(row => {
+    const email = row.getAttribute('data-email').toLowerCase();
+    const gender = row.getAttribute('data-gender').toLowerCase();
+
+    const emailMatch = email.includes(searchTerm);
+    const genderMatch = genderFilter === 'all' || gender === genderFilter;
+
+    return emailMatch && genderMatch;
+  });
+
+  currentPageBanned = 1;
+  updateBannedMembersDisplay();
+}
+
+// Event listeners
+document.getElementById('bannedEmailSearch').addEventListener('input', filterAndPaginateBanned);
+document.getElementById('bannedGenderFilter').addEventListener('change', filterAndPaginateBanned);
+
+
+    function updateActiveMembersDisplay() {
+      const allRows = document.querySelectorAll('#activeMembersBody .member-row');
+      const totalPages = Math.ceil(filteredActiveMembersData.length / ITEMS_PER_PAGE) || 1;
+      
+      allRows.forEach(row => row.style.display = 'none');
+      
+      const startIdx = (currentPageActive - 1) * ITEMS_PER_PAGE;
+      const endIdx = startIdx + ITEMS_PER_PAGE;
+      
+      filteredActiveMembersData.slice(startIdx, endIdx).forEach(row => {
+        row.style.display = '';
+      });
+      
+      document.getElementById('currentPageActive').textContent = currentPageActive;
+      document.getElementById('totalPagesActive').textContent = totalPages;
+      document.getElementById('prevBtn').disabled = currentPageActive === 1;
+      document.getElementById('nextBtn').disabled = currentPageActive === totalPages;
+    }
+
+    function updateBannedMembersDisplay() {
+      const allRows = document.querySelectorAll('#bannedMembersBody .banned-row');
+      const totalPages = Math.ceil(filteredBannedMembersData.length / ITEMS_PER_PAGE) || 1;
+      
+      allRows.forEach(row => row.style.display = 'none');
+      
+      const startIdx = (currentPageBanned - 1) * ITEMS_PER_PAGE;
+      const endIdx = startIdx + ITEMS_PER_PAGE;
+      
+      filteredBannedMembersData.slice(startIdx, endIdx).forEach(row => {
+        row.style.display = '';
+      });
+      
+      document.getElementById('currentPageBanned').textContent = currentPageBanned;
+      document.getElementById('totalPagesBanned').textContent = totalPages;
+      document.getElementById('prevBannedBtn').disabled = currentPageBanned === 1;
+      document.getElementById('nextBannedBtn').disabled = currentPageBanned === totalPages;
+    }
+
+    function nextPage(table) {
+      if (table === 'active') {
+        const totalPages = Math.ceil(filteredActiveMembersData.length / ITEMS_PER_PAGE) || 1;
+        if (currentPageActive < totalPages) {
+          currentPageActive++;
+          updateActiveMembersDisplay();
+        }
+      } else {
+        const totalPages = Math.ceil(filteredBannedMembersData.length / ITEMS_PER_PAGE) || 1;
+        if (currentPageBanned < totalPages) {
+          currentPageBanned++;
+          updateBannedMembersDisplay();
+        }
+      }
+    }
+
+    function previousPage(table) {
+      if (table === 'active') {
+        if (currentPageActive > 1) {
+          currentPageActive--;
+          updateActiveMembersDisplay();
+        }
+      } else {
+        if (currentPageBanned > 1) {
+          currentPageBanned--;
+          updateBannedMembersDisplay();
+        }
+      }
+    }
+
+    // Initialize pagination on page load
+    document.addEventListener('DOMContentLoaded', initializePagination);
+
+    // Add event listeners for search and filter
+    document.getElementById('emailSearch').addEventListener('input', filterAndPaginateActive);
+    document.getElementById('genderFilter').addEventListener('change', filterAndPaginateActive);
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      if (modalId === 'deleteModal') {
+        document.getElementById('deleteReason').value = '';
+        currentDeleteForm = null;
+      }
+    }
+
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteMessage = document.getElementById('deleteMessage');
+    const deleteReasonInput = document.getElementById('deleteReason');
+    let currentDeleteForm = null;
+
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const memberName = btn.getAttribute('data-name');
+        const memberId = btn.getAttribute('data-id');
+
+        deleteMessage.textContent = `Are you sure you want to delete "${memberName}"? This action cannot be undone.`;
+
+        currentDeleteForm = document.createElement('form');
+        currentDeleteForm.method = 'POST';
+        currentDeleteForm.action = `/admin/members/delete/${memberId}`;
+        document.body.appendChild(currentDeleteForm);
+
+        deleteModal.classList.add('active');
+      });
+    });
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+      if (currentDeleteForm) {
+        const reason = deleteReasonInput.value.trim();
+        if (!reason) {
+          alert('Please enter a reason for deletion.');
+          return;
+        }
+
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'deleteReason';
+        hiddenInput.value = reason;
+        currentDeleteForm.appendChild(hiddenInput);
+
+        currentDeleteForm.submit();
+      }
+    });
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) {
+        closeModal('deleteModal');
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
+        closeModal('deleteModal');
+      }
+    });
+  </script>
+
+</body>
+
+</html>
