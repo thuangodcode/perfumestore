@@ -15,9 +15,14 @@
       <p class="perfume-brand">
         <%= perfume.brand ? perfume.brand.brandName : 'Unknown Brand' %>
       </p>
-      <div class="perfume-price">
-        <%= perfume.price %> VND
-      </div>
+<div class="perfume-price">
+  <% if (perfume.price) { %>
+    <%= perfume.price.toLocaleString() %> VND
+  <% } else { %>
+    <span>Giá chưa cập nhật</span>
+  <% } %>
+</div>
+
       <p class="perfume-description">
         <%= perfume.description %>
       </p>
