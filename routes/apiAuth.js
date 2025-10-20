@@ -1,6 +1,6 @@
 // routes/apiAuth.js
 const router = require('express').Router();
-const Member = require('../models/Member');
+const Collector = require('../models/Collector');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await Member.findOne({ email });
+    const user = await Collector.findOne({ email });
     if (!user) return res.status(400).json({ msg: 'User not found' });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -30,11 +30,11 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   const { email, password, name, YOB, gender } = req.body;
   try {
-    const existing = await Member.findOne({ email });
+    const existing = await Collector.findOne({ email });
     if (existing) return res.status(400).json({ msg: 'Email exists' });
 
     const hash = await bcrypt.hash(password, 10);
-    await Member.create({ email, password: hash, name, YOB, gender });
+    await Collector.create({ email, password: hash, name, YOB, gender });
 
     res.status(201).json({ msg: 'Registered OK' });
   } catch (err) {

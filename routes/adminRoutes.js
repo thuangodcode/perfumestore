@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { requireAdminSession } = require('../middlewares/adminSession');
 const Perfume = require('../models/Perfume');
 const Brand = require('../models/Brand');
-const Member = require('../models/Member');
+const Collector = require('../models/Collector');
 
 // ✅ Trang Dashboard
 // GET /admin/dashboard
@@ -11,7 +11,7 @@ router.get('/dashboard', async (req, res) => {
     const perfumes = await Perfume.find().populate('brand', 'brandName');
     const perfumesCount = await Perfume.countDocuments();
     const brandsCount = await Brand.countDocuments();
-    const membersCount = await Member.countDocuments();
+    const collectorsCount = await Collector.countDocuments();
 
     res.render('admin/dashboard', {
       title: 'Admin Dashboard',
@@ -19,7 +19,7 @@ router.get('/dashboard', async (req, res) => {
       perfumes,
       perfumesCount,
       brandsCount,
-      membersCount,
+      collectorsCount,
     });
 
   } catch (err) {
@@ -63,9 +63,11 @@ router.post('/perfumes/add', async (req, res) => {
     });
 
     await newPerfume.save();
+    req.flash('success', 'Product added successfully!'); // ✅ Thêm flash
     res.redirect('/admin/dashboard');
   } catch (err) {
-    res.send('Lỗi khi thêm sản phẩm: ' + err.message);
+    req.flash('error', 'Error adding product: ' + err.message);
+    res.redirect('/admin/dashboard');
   }
 });
 
@@ -83,8 +85,14 @@ router.get('/perfumes/edit/:id', async (req, res) => {
 
 // ✅ Xử lý lưu chỉnh sửa
 router.post('/perfumes/edit/:id', async (req, res) => {
-  await Perfume.findByIdAndUpdate(req.params.id, req.body);
-  res.redirect('/admin/dashboard');
+  try {
+    await Perfume.findByIdAndUpdate(req.params.id, req.body);
+    req.flash('success', 'Product update successful!');
+    res.redirect('/admin/dashboard');
+  } catch (err) {
+    req.flash('error', 'Error while updating product: ' + err.message);
+    res.redirect('/admin/dashboard');
+  }
 });
 
 // ✅ Xóa sản phẩm (Perfume)
@@ -92,9 +100,11 @@ router.post('/perfumes/delete/:id', requireAdminSession, async (req, res) => {
   try {
     const perfumeId = req.params.id;
     await Perfume.findByIdAndDelete(perfumeId);
-    res.redirect('/admin/dashboard'); // Hoặc trả JSON nếu dùng API
+    req.flash('success', 'Product deleted successfully!');
+    res.redirect('/admin/dashboard');
   } catch (err) {
-    res.send('Lỗi khi xóa sản phẩm: ' + err.message);
+    req.flash('error', 'Error while deleting product: ' + err.message);
+    res.redirect('/admin/dashboard');
   }
 });
 
@@ -107,7 +117,7 @@ router.get('/brands', async (req, res) => {
     // ✅ Thống kê các số liệu
     const perfumesCount = await Perfume.countDocuments();
     const brandsCount = await Brand.countDocuments();
-    const membersCount = await Member.countDocuments();
+    const collectorsCount = await Collector.countDocuments();
 
     res.render('admin/brands', {
       title: 'Brand List',
@@ -116,7 +126,7 @@ router.get('/brands', async (req, res) => {
       brands,
       perfumesCount,
       brandsCount,
-      membersCount,
+      collectorsCount,
         successMessage: req.flash('success'),
   errorMessage: req.flash('error')
     });
@@ -136,16 +146,28 @@ router.get('/brands/add', (req, res) => {
 // Xử lý thêm Brand mới
 router.post('/brands/add', async (req, res) => {
   try {
-    const { brandName } = req.body;
+    let { brandName } = req.body;
+    brandName = brandName.trim(); // Không ép thành UPPERCASE
+
+    // Kiểm tra trùng case-insensitive
+    const existing = await Brand.findOne({ brandName }).collation({ locale: 'en', strength: 2 });
+    if (existing) {
+      req.flash('error', 'The brand name already exists!');
+      return res.redirect('/admin/brands/add');
+    }
 
     const newBrand = new Brand({ brandName });
     await newBrand.save();
 
+    req.flash('success', 'Brand added successfully!');
     res.redirect('/admin/brands');
   } catch (err) {
-    res.send('Lỗi khi thêm brand: ' + err.message);
+    req.flash('error', 'Error adding brand: ' + err.message);
+    res.redirect('/admin/brands/add');
   }
 });
+
+
 
 // Trang form chỉnh sửa Brand
 router.get('/brands/edit/:id', async (req, res) => {
@@ -170,77 +192,76 @@ router.post('/brands/edit/:id', async (req, res) => {
   try {
     const { brandName } = req.body;
     await Brand.findByIdAndUpdate(req.params.id, { brandName });
+    req.flash('success', 'Brand update successful!');
     res.redirect('/admin/brands');
   } catch (err) {
-    res.send('Lỗi khi cập nhật brand: ' + err.message);
+    req.flash('error', 'Error when updating brand: ' + err.message);
+    res.redirect('/admin/brands');
   }
 });
 
-
-// 📌 Trang liệt kê Users (Admin xem tất cả thành viên)
-router.get('/members', requireAdminSession, async (req, res) => {
+// 📌 Trang liệt kê Collectors (Admin xem tất cả collector)
+router.get('/collectors', requireAdminSession, async (req, res) => {
   try {
-    // ✅ Thành viên đang hoạt động (chưa xoá mềm)
-    const members = await Member.find({ isDeleted: false }).select('-password');
+    // ✅ Collector đang hoạt động (chưa xoá mềm)
+    const collectors = await Collector.find({ isDeleted: false }).select('-password');
 
-    // ✅ Thành viên đã xoá mềm
-    const deletedMembers = await Member.find({ isDeleted: true }).select('-password');
+    // ✅ Collector đã xoá mềm
+    const deletedCollectors = await Collector.find({ isDeleted: true }).select('-password');
 
     // ✅ Thống kê
     const perfumesCount = await Perfume.countDocuments();
     const brandsCount = await Brand.countDocuments();
-    const membersCount = await Member.countDocuments();
+    const collectorsCount = await Collector.countDocuments();
 
-    res.render('admin/members', {
-      title: 'Member List',
+    res.render('admin/collectors', {
+      title: 'Collector List',
       admin: req.session.user,
-      members,
-      deletedMembers, // ✅ THÊM DÒNG NÀY
+      collectors,
+      deletedCollectors, 
       perfumesCount,
       brandsCount,
-      membersCount,
-  successMessage: req.flash('success'),
-  errorMessage: req.flash('error')
+      collectorsCount,
+      successMessage: req.flash('success'),
+      errorMessage: req.flash('error')
     });
 
   } catch (err) {
-    res.send('Lỗi khi lấy danh sách thành viên: ' + err.message);
+    res.send('Error when getting collector list: ' + err.message);
   }
 });
 
-
-
-// ✅ Xóa mềm Member (Ban user)
-router.post('/members/delete/:id', requireAdminSession, async (req, res) => {
+// ✅ Xóa mềm Collector (Ban user)
+router.post('/collectors/delete/:id', requireAdminSession, async (req, res) => {
   try {
     const reason = req.body.deleteReason || "Không xác định";
 
-    await Member.findByIdAndUpdate(req.params.id, {
+    await Collector.findByIdAndUpdate(req.params.id, {
       isDeleted: true,
       deleteReason: reason
     });
 
-    req.flash('success', 'Đã khóa tài khoản và lưu lý do!');
-    res.redirect('/admin/members');
+    req.flash('success', 'Account locked and reason saved!');
+    res.redirect('/admin/collectors');
   } catch (err) {
-    req.flash('error', 'Lỗi khi xoá người dùng: ' + err.message);
-    res.redirect('/admin/members');
+    req.flash('error', 'Error while deleting collector: ' + err.message);
+    res.redirect('/admin/collectors');
   }
 });
 
-// ✅ Khôi phục Member (Unban user)
-router.post('/members/restore/:id', requireAdminSession, async (req, res) => {
+// ✅ Khôi phục Collector (Unban user)
+router.post('/collectors/restore/:id', requireAdminSession, async (req, res) => {
   try {
-    await Member.findByIdAndUpdate(req.params.id, {
+    await Collector.findByIdAndUpdate(req.params.id, {
       isDeleted: false,
       deleteReason: ''
     });
 
-    req.flash('success', 'Tài khoản đã được khôi phục!');
-    res.redirect('/admin/members');
+    req.flash('success', 'Account has been restored!');
+    res.redirect('/admin/collectors');
   } catch (err) {
-    req.flash('error', 'Lỗi khi khôi phục tài khoản: ' + err.message);
-    res.redirect('/admin/members');
+    req.flash('error', 'Error while recovering collector: ' + err.message);
+    res.redirect('/admin/collectors');
   }
 });
 

@@ -54,7 +54,7 @@ const perfumeRouter = require('./routes/perfume');
 const authRouter = require('./routes/auth');
 const collectorRouter = require('./routes/collector');
 const commentRouter = require('./routes/comment');
-const memberRouter = require('./routes/member');
+
 
 const ejsRoutes = require('./routes/ejsRoutes');
 const profileRoute = require('./routes/profileRoute');
@@ -66,7 +66,7 @@ app.use('/api/perfumes', perfumeRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/collectors', collectorRouter);
 app.use('/api/perfumes', commentRouter);
-app.use('/api/members', memberRouter);
+
 app.use('/api/v1/auth', require('./routes/apiAuth'));
 
 /* ✅ Chặn ADMIN vào trang người dùng (chạy TRƯỚC ejsRoutes và profileRoute) */

@@ -1,7 +1,8 @@
+// models/Collector.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const memberSchema = new Schema({
+const collectorSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String },
@@ -16,4 +17,4 @@ const memberSchema = new Schema({
   deleteReason: { type: String, default: '' },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Members', memberSchema);
+module.exports = mongoose.model('Collectors', collectorSchema);

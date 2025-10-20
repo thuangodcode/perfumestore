@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Member = require("../models/Member");
+const Collector = require("../models/Collector");
 const bcrypt = require("bcryptjs");
 
 // 🧱 Middleware kiểm tra login
@@ -15,7 +15,7 @@ function isAuthenticated(req, res, next) {
 // 🧭 GET /profile — Hiển thị trang hồ sơ
 router.get("/", isAuthenticated, async (req, res) => {
   try {
-    const user = await Member.findById(req.session.user._id).select("-password");
+    const user = await Collector.findById(req.session.user._id).select("-password");
 
     if (!user) {
       req.session.destroy();
@@ -42,14 +42,14 @@ router.post("/update", isAuthenticated, async (req, res) => {
     const { name, YOB, gender } = req.body;
 
     // ✅ Cập nhật thông tin trong MongoDB
-    await Member.findByIdAndUpdate(req.session.user._id, {
+    await Collector.findByIdAndUpdate(req.session.user._id, {
       name,
       YOB,
       gender,
     });
 
     // ✅ Lấy lại bản mới để đồng bộ session (chuyển sang plain object)
-    const updatedUser = await Member.findById(req.session.user._id)
+    const updatedUser = await Collector.findById(req.session.user._id)
       .select("-password")
       .lean();
 
@@ -70,7 +70,7 @@ router.post("/update", isAuthenticated, async (req, res) => {
 router.post("/change-password", isAuthenticated, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const user = await Member.findById(req.session.user._id);
+    const user = await Collector.findById(req.session.user._id);
 
     if (!user) {
       req.session.successMessage = "❌ Không tìm thấy người dùng!";

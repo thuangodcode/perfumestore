@@ -12,8 +12,8 @@
 
   <div class="admin-container">
     <!-- Improved header with proper styling -->
-    <div class="members-header">
-      <h1>Member Management</h1>
+    <div class="collector-header">
+      <h1>Collector Management</h1>
     </div>
 
     <!-- Stats -->
@@ -28,17 +28,18 @@
         <div class="stat-value"><%= brandsCount %></div>
       </div>
 
-      <div class="stat-card" onclick="window.location.href='/admin/members'">
-        <h3>Total Members</h3>
-        <div class="stat-value"><%= membersCount %></div>
-      </div>
+      <div class="stat-card" onclick="window.location.href='/admin/collectors'">
+  <h3>Total Collectors</h3>
+  <div class="stat-value"><%= collectorsCount %></div>
+</div>
+
     </div>
 
-    <!-- Active Members Table -->
+    <!-- Active collector Table -->
     <div class="table-container">
       <div class="table-header">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <h2>Active Members</h2>
+          <h2>Active collector</h2>
           <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
             <div class="search-group">
               <input type="text" id="emailSearch" placeholder="Search by email...">
@@ -56,64 +57,64 @@
         </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Year of Birth</th>
-            <th>Gender</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="activeMembersBody">
-          <% if (members && members.length > 0) { %>
-            <% members.forEach(m => { %>
-              <tr class="member-row" data-email="<%= m.email || '' %>">
-                <td>
-                  <strong>
-                    <%= m.name || 'N/A' %>
-                    <% if (m.isAdmin) { %>
-                      <span class="admin-badge">Admin</span>
-                    <% } %>
-                  </strong>
-                </td>
-                <td><%= m.email || 'N/A' %></td>
-                <td><%= m.YOB || 'N/A' %></td>
-                <td><%= m.gender || 'N/A' %></td>
-                <td>
-                  <div class="action-buttons">
-                    <button type="button" class="btn-delete" data-id="<%= m._id %>" data-name="<%= m.name %>">
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            <% }) %>
-          <% } else { %>
-            <tr>
-              <td colspan="5" style="text-align: center; padding: 2rem; color: #888888;">
-                No members available
-              </td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Year of Birth</th>
+      <th>Gender</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="activeCollectorsBody">
+    <% if (collectors && collectors.length > 0) { %>
+      <% collectors.forEach(c => { %>
+        <tr class="collector-row" data-email="<%= c.email || '' %>">
+          <td>
+            <strong>
+              <%= c.name || 'N/A' %>
+              <% if (c.isAdmin) { %>
+                <span class="admin-badge">Admin</span>
+              <% } %>
+            </strong>
+          </td>
+          <td><%= c.email || 'N/A' %></td>
+          <td><%= c.YOB || 'N/A' %></td>
+          <td><%= c.gender || 'N/A' %></td>
+          <td>
+            <div class="action-buttons">
+              <button type="button" class="btn-delete" data-id="<%= c._id %>" data-name="<%= c.name %>">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 2rem; color: #888888;">
+          No collector available
+        </td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>
 
-      <div class="pagination">
-        <button id="prevBtn" onclick="previousPage('active')">Previous</button>
-        <span class="page-info">
-          Page <span id="currentPageActive">1</span> of <span id="totalPagesActive">1</span>
-        </span>
-        <button id="nextBtn" onclick="nextPage('active')">Next</button>
-      </div>
-    </div>
+<div class="pagination">
+  <button id="prevBtn" onclick="previousPage('active')">Previous</button>
+  <span class="page-info">
+    Page <span id="currentPageActive">1</span> of <span id="totalPagesActive">1</span>
+  </span>
+  <button id="nextBtn" onclick="nextPage('active')">Next</button>
+</div>
+</div>
 
-   <!-- Banned Members Table -->
+   <!-- Banned collector Table -->
 <div class="table-container">
   <div class="table-header">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <h2>Banned Members</h2>
+      <h2>Banned collector</h2>
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <div class="search-group">
           <input type="text" id="bannedEmailSearch" placeholder="Search by email...">
@@ -140,27 +141,28 @@
         <th>Action</th>
       </tr>
     </thead>
-    <tbody id="bannedMembersBody">
-      <% if (deletedMembers && deletedMembers.length > 0) { %>
-        <% deletedMembers.forEach(m => { %>
-          <tr class="banned-row" data-email="<%= m.email || '' %>" data-gender="<%= m.gender || '' %>">
-            <td><strong><%= m.name %></strong></td>
-            <td><%= m.email %></td>
-            <td><%= m.deleteReason || 'N/A' %></td>
-            <td>
-              <form method="POST" action="/admin/members/restore/<%= m._id %>" style="display: inline;">
-                <button type="submit" class="btn-edit">Restore</button>
-              </form>
-            </td>
-          </tr>
-        <% }) %>
-      <% } else { %>
-        <tr>
-          <td colspan="4" style="text-align: center; padding: 2rem; color: #888888;">
-            No banned members
-          </td>
-        </tr>
-      <% } %>
+    <tbody id="bannedCollectorsBody">
+      <% if (deletedCollectors && deletedCollectors.length > 0) { %>
+  <% deletedCollectors.forEach(dc => { %>
+    <tr class="banned-row" data-email="<%= dc.email || '' %>" data-gender="<%= dc.gender || '' %>">
+      <td><strong><%= dc.name %></strong></td>
+      <td><%= dc.email %></td>
+      <td><%= dc.deleteReason || 'N/A' %></td>
+      <td>
+        <form method="POST" action="/admin/collectors/restore/<%= dc._id %>" style="display: inline;">
+          <button type="submit" class="btn-edit">Restore</button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+<% } else { %>
+  <tr>
+    <td colspan="4" style="text-align: center; padding: 2rem; color: #888888;">
+      No banned collector
+    </td>
+  </tr>
+<% } %>
+
     </tbody>
   </table>
 
@@ -180,16 +182,16 @@
   <div id="deleteModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3>Confirm Delete Member</h3>
+        <h3>Confirm Delete collector</h3>
       </div>
       <div class="modal-body">
         <p id="deleteMessage"></p>
         <label for="deleteReason" style="display: block; margin-bottom: 0.5rem;">Reason for deletion:</label>
-        <textarea id="deleteReason" class="delete-reason-input" placeholder="Enter the reason for deleting this member..."></textarea>
+        <textarea id="deleteReason" class="delete-reason-input" placeholder="Enter the reason for deleting this collector..."></textarea>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
-        <button class="btn-confirm danger" id="confirmDeleteBtn">Delete Member</button>
+        <button class="btn-confirm danger" id="confirmDeleteBtn">Delete collector</button>
       </div>
     </div>
   </div>
@@ -198,26 +200,26 @@
     const ITEMS_PER_PAGE = 7;
     let currentPageActive = 1;
     let currentPageBanned = 1;
-    let filteredActiveMembersData = [];
-    let filteredBannedMembersData = [];
+    let filteredActivecollectorData = [];
+    let filteredBannedcollectorData = [];
 
     function initializePagination() {
-      const allActiveRows = document.querySelectorAll('#activeMembersBody .member-row');
-      const allBannedRows = document.querySelectorAll('#bannedMembersBody .banned-row');
+      const allActiveRows = document.querySelectorAll('#activeCollectorsBody .collector-row');
+      const allBannedRows = document.querySelectorAll('#bannedcollectorBody .banned-row');
       
-      filteredActiveMembersData = Array.from(allActiveRows);
-      filteredBannedMembersData = Array.from(allBannedRows);
+      filteredActivecollectorData = Array.from(allActiveRows);
+      filteredBannedcollectorData = Array.from(allBannedRows);
       
-      updateActiveMembersDisplay();
-      updateBannedMembersDisplay();
+      updateActivecollectorDisplay();
+      updateBannedcollectorDisplay();
     }
 
     function filterAndPaginateActive() {
       const searchTerm = document.getElementById('emailSearch').value.toLowerCase();
       const genderFilter = document.getElementById('genderFilter').value.toLowerCase();
-      const allRows = document.querySelectorAll('#activeMembersBody .member-row');
+      const allRows = document.querySelectorAll('#activecollectorBody .collector-row');
       
-      filteredActiveMembersData = Array.from(allRows).filter(row => {
+      filteredActivecollectorData = Array.from(allRows).filter(row => {
         const email = row.getAttribute('data-email').toLowerCase();
         const gender = row.children[3].textContent.trim().toLowerCase();
         
@@ -228,15 +230,15 @@
       });
       
       currentPageActive = 1;
-      updateActiveMembersDisplay();
+      updateActivecollectorDisplay();
     }
 
     function filterAndPaginateBanned() {
   const searchTerm = document.getElementById('bannedEmailSearch').value.toLowerCase();
   const genderFilter = document.getElementById('bannedGenderFilter').value.toLowerCase();
-  const allRows = document.querySelectorAll('#bannedMembersBody .banned-row');
+  const allRows = document.querySelectorAll('#bannedcollectorBody .banned-row');
 
-  filteredBannedMembersData = Array.from(allRows).filter(row => {
+  filteredBannedcollectorData = Array.from(allRows).filter(row => {
     const email = row.getAttribute('data-email').toLowerCase();
     const gender = row.getAttribute('data-gender').toLowerCase();
 
@@ -247,7 +249,7 @@
   });
 
   currentPageBanned = 1;
-  updateBannedMembersDisplay();
+  updateBannedcollectorDisplay();
 }
 
 // Event listeners
@@ -255,16 +257,16 @@ document.getElementById('bannedEmailSearch').addEventListener('input', filterAnd
 document.getElementById('bannedGenderFilter').addEventListener('change', filterAndPaginateBanned);
 
 
-    function updateActiveMembersDisplay() {
-      const allRows = document.querySelectorAll('#activeMembersBody .member-row');
-      const totalPages = Math.ceil(filteredActiveMembersData.length / ITEMS_PER_PAGE) || 1;
+    function updateActivecollectorDisplay() {
+      const allRows = document.querySelectorAll('#activecollectorBody .collector-row');
+      const totalPages = Math.ceil(filteredActivecollectorData.length / ITEMS_PER_PAGE) || 1;
       
       allRows.forEach(row => row.style.display = 'none');
       
       const startIdx = (currentPageActive - 1) * ITEMS_PER_PAGE;
       const endIdx = startIdx + ITEMS_PER_PAGE;
       
-      filteredActiveMembersData.slice(startIdx, endIdx).forEach(row => {
+      filteredActivecollectorData.slice(startIdx, endIdx).forEach(row => {
         row.style.display = '';
       });
       
@@ -274,16 +276,16 @@ document.getElementById('bannedGenderFilter').addEventListener('change', filterA
       document.getElementById('nextBtn').disabled = currentPageActive === totalPages;
     }
 
-    function updateBannedMembersDisplay() {
-      const allRows = document.querySelectorAll('#bannedMembersBody .banned-row');
-      const totalPages = Math.ceil(filteredBannedMembersData.length / ITEMS_PER_PAGE) || 1;
+    function updateBannedcollectorDisplay() {
+      const allRows = document.querySelectorAll('#bannedcollectorBody .banned-row');
+      const totalPages = Math.ceil(filteredBannedcollectorData.length / ITEMS_PER_PAGE) || 1;
       
       allRows.forEach(row => row.style.display = 'none');
       
       const startIdx = (currentPageBanned - 1) * ITEMS_PER_PAGE;
       const endIdx = startIdx + ITEMS_PER_PAGE;
       
-      filteredBannedMembersData.slice(startIdx, endIdx).forEach(row => {
+      filteredBannedcollectorData.slice(startIdx, endIdx).forEach(row => {
         row.style.display = '';
       });
       
@@ -295,16 +297,16 @@ document.getElementById('bannedGenderFilter').addEventListener('change', filterA
 
     function nextPage(table) {
       if (table === 'active') {
-        const totalPages = Math.ceil(filteredActiveMembersData.length / ITEMS_PER_PAGE) || 1;
+        const totalPages = Math.ceil(filteredActivecollectorData.length / ITEMS_PER_PAGE) || 1;
         if (currentPageActive < totalPages) {
           currentPageActive++;
-          updateActiveMembersDisplay();
+          updateActivecollectorDisplay();
         }
       } else {
-        const totalPages = Math.ceil(filteredBannedMembersData.length / ITEMS_PER_PAGE) || 1;
+        const totalPages = Math.ceil(filteredBannedcollectorData.length / ITEMS_PER_PAGE) || 1;
         if (currentPageBanned < totalPages) {
           currentPageBanned++;
-          updateBannedMembersDisplay();
+          updateBannedcollectorDisplay();
         }
       }
     }
@@ -313,12 +315,12 @@ document.getElementById('bannedGenderFilter').addEventListener('change', filterA
       if (table === 'active') {
         if (currentPageActive > 1) {
           currentPageActive--;
-          updateActiveMembersDisplay();
+          updateActivecollectorDisplay();
         }
       } else {
         if (currentPageBanned > 1) {
           currentPageBanned--;
-          updateBannedMembersDisplay();
+          updateBannedcollectorDisplay();
         }
       }
     }
@@ -346,14 +348,14 @@ document.getElementById('bannedGenderFilter').addEventListener('change', filterA
 
     deleteButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        const memberName = btn.getAttribute('data-name');
-        const memberId = btn.getAttribute('data-id');
+        const collectorName = btn.getAttribute('data-name');
+        const collectorId = btn.getAttribute('data-id');
 
-        deleteMessage.textContent = `Are you sure you want to delete "${memberName}"? This action cannot be undone.`;
+        deleteMessage.textContent = `Are you sure you want to delete "${collectorName}"? This action cannot be undone.`;
 
         currentDeleteForm = document.createElement('form');
         currentDeleteForm.method = 'POST';
-        currentDeleteForm.action = `/admin/members/delete/${memberId}`;
+        currentDeleteForm.action = `/admin/collectors/delete/${collectorId}`;
         document.body.appendChild(currentDeleteForm);
 
         deleteModal.classList.add('active');
@@ -392,6 +394,31 @@ document.getElementById('bannedGenderFilter').addEventListener('change', filterA
       }
     });
   </script>
+
+  <script>
+  const genderFilter = document.getElementById('genderFilter');
+  const emailSearch = document.getElementById('emailSearch');
+  const rows = document.querySelectorAll('.collector-row');
+
+  function filterCollectors() {
+    const genderValue = genderFilter.value;
+    const emailValue = emailSearch.value.toLowerCase();
+
+    rows.forEach(row => {
+      const rowGender = row.cells[3].textContent.trim(); // cột gender
+      const rowEmail = row.dataset.email.toLowerCase();
+
+      const genderMatch = genderValue === 'all' || rowGender === genderValue;
+      const emailMatch = rowEmail.includes(emailValue);
+
+      row.style.display = (genderMatch && emailMatch) ? '' : 'none';
+    });
+  }
+
+  genderFilter.addEventListener('change', filterCollectors);
+  emailSearch.addEventListener('input', filterCollectors);
+</script>
+
 
 </body>
 

@@ -1,11 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title || "Perfume Store" %></title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Toast CSS */
+    #toastContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .toast {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      opacity: 1;
+      transition: opacity 0.5s, transform 0.3s;
+    }
+    .toast.hide {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    .toast.error {
+      background-color: #f44336;
+    }
+  </style>
 </head>
 
 <body>
@@ -24,7 +48,6 @@
         <span class="username">
           <a href="/profile"><%= user.name %></a>
         </span>
-        <!-- Enhanced logout button -->
         <a href="#" class="btn-logout" onclick="openLogoutModal(event)">Logout</a>
       <% } %>
     </div>
@@ -37,46 +60,53 @@
   <footer>
     <p>© 2025 Perfume Store. All rights reserved.</p>
   </footer>
-<!-- ✅ Toast notification for success message -->
-<%
-  const successText = Array.isArray(successMessage) ? successMessage[0] : successMessage;
-  if (typeof successText === 'string' && successText.trim().length > 0) {
-%>
-  <div id="toast-success" class="toast">
-    <%= successText %>
-  </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer"></div>
+
   <script>
-    const toastSuccess = document.getElementById('toast-success');
-    if (toastSuccess) {
-      toastSuccess.style.opacity = '1';
+    function showToast(message, type='success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
       setTimeout(() => {
-        toastSuccess.style.opacity = '0';
-        setTimeout(() => toastSuccess.remove(), 500);
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 500);
       }, 3000);
     }
-  </script>
-<% } %>
 
-<!-- ✅ Toast notification for error message -->
-<%
-  const errorText = Array.isArray(errorMessage) ? errorMessage[0] : errorMessage;
-  if (typeof errorText === 'string' && errorText.trim().length > 0) {
-%>
-  <div id="toast-error" class="toast error">
-    <%= errorText %>
-  </div>
-  <script>
-    const toastError = document.getElementById('toast-error');
-    if (toastError) {
-      toastError.style.opacity = '1';
-      setTimeout(() => {
-        toastError.style.opacity = '0';
-        setTimeout(() => toastError.remove(), 500);
-      }, 3000);
+    // ✅ Hiển thị flash messages từ server
+    <% if (successMessage && successMessage.length > 0) { %>
+      showToast('<%= successMessage[0] %>', 'success');
+    <% } %>
+    <% if (errorMessage && errorMessage.length > 0) { %>
+      showToast('<%= errorMessage[0] %>', 'error');
+    <% } %>
+
+    // Logout modal
+    function openLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById('logoutModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
     }
-  </script>
-<% } %>
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+    function confirmLogout() {
+      window.location.href = '/logout';
+    }
 
+    const logoutModal = document.getElementById('logoutModal');
+    logoutModal.addEventListener('click', (e) => {
+      if (e.target.id === 'logoutModal') closeLogoutModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLogoutModal();
+    });
+  </script>
 
   <!-- Logout Modal -->
   <div id="logoutModal" class="modal-overlay">
@@ -93,32 +123,5 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function openLogoutModal(event) {
-      event.preventDefault();
-      document.getElementById('logoutModal').classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeLogoutModal() {
-      document.getElementById('logoutModal').classList.remove('active');
-      document.body.style.overflow = 'auto';
-    }
-
-    function confirmLogout() {
-      window.location.href = '/logout';
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('logoutModal').addEventListener('click', (e) => {
-      if (e.target.id === 'logoutModal') closeLogoutModal();
-    });
-
-    // ESC to close modal
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeLogoutModal();
-    });
-  </script>
 </body>
 </html>

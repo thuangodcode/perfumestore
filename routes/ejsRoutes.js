@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Perfume = require('../models/Perfume');
 const Brand = require('../models/Brand');
-const Member = require('../models/Member');
+const Collector = require('../models/Collector');
 const bcrypt = require('bcryptjs');
 const { requireLogin } = require('../middlewares/auth');
 
@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
       sortPrice
     });
 
-    req.session.successMessage = null;
+    // req.session.successMessage = null;
   } catch (error) {
     console.error('Error loading perfumes:', error);
     res.status(500).send('Internal Server Error');
@@ -186,7 +186,7 @@ router.post('/login', async (req, res) => {
   const redirectUrl = req.query.redirect || "/";
 
   try {
-    const user = await Member.findOne({ email });
+    const user = await Collector.findOne({ email });
     if (!user) {
       req.flash('error', 'Email does not exist');
       return res.redirect("/login");
@@ -248,15 +248,15 @@ router.get('/register', (req, res) => {
 router.post('/register', async (req, res) => {
   const { email, password, name, YOB, gender } = req.body;
   try {
-    const existing = await Member.findOne({ email });
+    const existing = await Collector.findOne({ email });
     if (existing) {
       req.flash('error', 'Email already exists!');
       return res.redirect('/register');
     }
 
     const hash = await bcrypt.hash(password, 10);
-    const member = new Member({ email, password: hash, name, YOB, gender });
-    await member.save();
+    const collector = new Collector({ email, password: hash, name, YOB, gender });
+    await collector.save();
 
     // ✅ Dùng flash như login
     req.flash('success', 'Registration successful! Please log in to continue.');

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const Member = require('../models/Member');
+const Collector = require('../models/Collector');
 
 exports.verifyToken = async (req, res, next) => {
   const header = req.headers['authorization'];
@@ -9,7 +9,7 @@ exports.verifyToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // { id, isAdmin }
     // optional: fetch full user
-    req.currentUser = await Member.findById(decoded.id).select('-password');
+    req.currentUser = await Collector.findById(decoded.id).select('-password');
     next();
   } catch (err) { res.status(401).json({ msg: 'Invalid token' }); }
 };

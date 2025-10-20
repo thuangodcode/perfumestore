@@ -708,7 +708,7 @@ textarea:focus {
 }
 
 toast.success {
-  background-color: #4CAF50;
+  background-color: #0a3d0a;
 }
 
 .toast.error {
@@ -721,18 +721,23 @@ toast.success {
 }
 
 .toast::before {
-  content: "✓";
-  display: inline-flex;
+  position: fixed;
+  top: 4rem;
+  right: 2rem;
+  background-color: #0a3d0a;
+  border: 1px solid #1a5d1a;
+  color: #4ade80;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  max-width: 400px;
+  animation: slideInRight 0.3s ease-out forwards;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  background-color: #4ade80;
-  color: #0a3d0a;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 0.75rem;
-  flex-shrink: 0;
+  gap: 0.75rem;
 }
 
 .toast.error {
@@ -1207,8 +1212,8 @@ toast.success {
 
 
     
-/* Member List Page Specific Styles */
-.members-header {
+/* collector List Page Specific Styles */
+.collector-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1217,7 +1222,7 @@ toast.success {
   border-bottom: 1px solid #262626;
 }
 
-.members-header h1 {
+.collector-header h1 {
   font-size: 2rem;
   font-weight: 600;
   letter-spacing: -0.02em;
