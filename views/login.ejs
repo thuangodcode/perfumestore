@@ -53,6 +53,33 @@
     </div>
   </main>
 
+  <!-- ✅ Toast container -->
+  <div id="toastContainer"></div>
+
+  <script>
+    // ✅ Định nghĩa hàm trước khi dùng
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ✅ Gọi hàm sau khi định nghĩa
+    <% if (successMessage && successMessage.length > 0) { %>
+      showToast('<%= successMessage[0] %>', 'success');
+    <% } %>
+
+    <% if (errorMessage && errorMessage.length > 0) { %>
+      showToast('<%= errorMessage[0] %>', 'error');
+    <% } %>
+  </script>
 
 </body>
 </html>

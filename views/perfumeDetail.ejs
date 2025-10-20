@@ -96,17 +96,16 @@
                 <%= c.content %>
               </p>
 
-              
+
               <% if (user && c.author && c.author._id.toString()===user._id.toString()) { %>
                 <div class="comment-actions">
-                  <button type="button" class="btn-small edit-btn" data-id="<%= c._id %>"
-                    data-content="<%= c.content %>" data-rating="<%= c.rating %>">
-                    Edit
+                  <button type="button" class="btn-small edit-btn"
+                    onclick="openEditModal('<%= c._id %>', '<%= c.content.replace(/'/g, " \\'") %>', <%= c.rating %>)">
+                      Edit
                   </button>
 
-                  <button type="button" class="btn-small btn-danger-small" onclick="openDeleteModal('<%= c._id %>')">
-                    Delete
-                  </button>
+                  <button type="button" class="btn-small btn-danger-small"
+                    onclick="openDeleteModal('<%= c._id %>')">Delete</button>
                 </div>
                 <% } %>
             </div>
@@ -129,12 +128,12 @@
             <div class="form-group">
               <label>Your Rating</label>
               <div class="rating-input">
-                <input type="radio" name="rating" value="3" id="star3" required>
-                <label for="star3">★</label>
+                <input type="radio" name="rating" value="1" id="star1" required>
+                <label for="star1">★</label>
                 <input type="radio" name="rating" value="2" id="star2">
                 <label for="star2">★</label>
-                <input type="radio" name="rating" value="1" id="star1">
-                <label for="star1">★</label>
+                <input type="radio" name="rating" value="3" id="star3">
+                <label for="star3">★</label>
               </div>
             </div>
 
@@ -159,6 +158,9 @@
               </div>
               <% } %>
 </div>
+
+<!-- Added toast notification container -->
+<div id="toastContainer"></div>
 
 
 <div id="deleteModal" class="modal-overlay">
@@ -186,12 +188,12 @@
       <div class="form-group">
         <label>Your Rating</label>
         <div class="rating-input" id="editRatingInput">
-          <input type="radio" name="rating" value="3" id="editStar3" required>
-          <label for="editStar3">★</label>
+          <input type="radio" name="rating" value="1" id="editStar1" required>
+          <label for="editStar1">★</label>
           <input type="radio" name="rating" value="2" id="editStar2">
           <label for="editStar2">★</label>
-          <input type="radio" name="rating" value="1" id="editStar1">
-          <label for="editStar1">★</label>
+          <input type="radio" name="rating" value="3" id="editStar3">
+          <label for="editStar3">★</label>
         </div>
       </div>
       <div class="form-group">
@@ -223,6 +225,23 @@
 </div>
 
 <script>
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      toast.classList.add('hide');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    }, 3000);
+  }
+
   // Star rating interaction for new review
   const ratingInputs = document.querySelectorAll('.feedback-section .rating-input input[type="radio"]');
   const ratingLabels = document.querySelectorAll('.feedback-section .rating-input label');
@@ -231,7 +250,7 @@
     ratingLabels.forEach((label, index) => {
       label.addEventListener('mouseenter', () => {
         ratingLabels.forEach((l, i) => {
-          l.style.color = i >= index ? '#fbbf24' : '#404040';
+          l.style.color = i <= index ? '#fbbf24' : '#404040';
         });
       });
     });
@@ -241,7 +260,7 @@
       if (checkedInput) {
         const checkedIndex = Array.from(ratingInputs).indexOf(checkedInput);
         ratingLabels.forEach((l, i) => {
-          l.style.color = i >= checkedIndex ? '#fbbf24' : '#404040';
+          l.style.color = i <= checkedIndex ? '#fbbf24' : '#404040';
         });
       } else {
         ratingLabels.forEach(l => l.style.color = '#404040');
@@ -255,7 +274,7 @@
     editRatingLabels.forEach((label, index) => {
       label.addEventListener('mouseenter', () => {
         editRatingLabels.forEach((l, i) => {
-          l.style.color = i >= index ? '#fbbf24' : '#404040';
+          l.style.color = i <= index ? '#fbbf24' : '#404040';
         });
       });
     });
@@ -265,7 +284,7 @@
       if (checkedInput) {
         const checkedIndex = Array.from(document.querySelectorAll('#editRatingInput input[type="radio"]')).indexOf(checkedInput);
         editRatingLabels.forEach((l, i) => {
-          l.style.color = i >= checkedIndex ? '#fbbf24' : '#404040';
+          l.style.color = i <= checkedIndex ? '#fbbf24' : '#404040';
         });
       } else {
         editRatingLabels.forEach(l => l.style.color = '#404040');
@@ -288,11 +307,17 @@
 
   function confirmDelete() {
     if (deleteCommentId) {
+      showToast('Review deleted successfully');
+
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = `/perfume/<%= perfume._id %>/comments/${deleteCommentId}/delete`;
       document.body.appendChild(form);
-      form.submit();
+
+      // Delay submission to show toast
+      setTimeout(() => {
+        form.submit();
+      }, 500);
     }
   }
 
@@ -308,7 +333,7 @@
       // Update star colors
       const editLabels = document.querySelectorAll('#editRatingInput label');
       editLabels.forEach((l, i) => {
-        l.style.color = i >= (3 - rating) ? '#fbbf24' : '#404040';
+        l.style.color = i < rating ? '#fbbf24' : '#404040';
       });
     }
 
@@ -318,6 +343,16 @@
   function closeEditModal() {
     document.getElementById('editModal').classList.remove('active');
   }
+
+  document.getElementById('editForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    showToast('Review updated successfully');
+
+    // Delay submission to show toast
+    setTimeout(() => {
+      this.submit();
+    }, 500);
+  });
 
   // Submit Review Modal Functions
   function openSubmitModal() {
@@ -334,7 +369,12 @@
   }
 
   function confirmSubmit() {
-    document.getElementById('reviewForm').submit();
+    showToast('Review submitted successfully');
+
+    // Delay submission to show toast
+    setTimeout(() => {
+      document.getElementById('reviewForm').submit();
+    }, 500);
   }
 
   // Close modals on outside click

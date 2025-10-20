@@ -2,14 +2,32 @@
 
 <form method="GET" action="/" class="search-form">
   <div class="search-container">
+    <!-- Search -->
     <input type="text" name="q" placeholder="Search perfume..." value="<%= q || '' %>" class="search-input">
+
+    <!-- Filter Brand -->
     <select name="brand" class="brand-select small-select">
       <option value="">All Brands</option>
-      <% brands.forEach(b=> { %>
-        <option value="<%= b._id %>" <%=brand==b._id ? 'selected' : '' %>><%= b.brandName %>
-        </option>
-        <% }) %>
+      <% brands.forEach(b => { %>
+        <option value="<%= b._id %>" <%= brand==b._id ? 'selected' : '' %>><%= b.brandName %></option>
+      <% }) %>
     </select>
+
+    <!-- Filter by Gender -->
+    <select name="gender" class="gender-select small-select">
+      <option value="">All Genders</option>
+      <option value="Male" <%= gender === 'Male' ? 'selected' : '' %>>Male</option>
+      <option value="Female" <%= gender === 'Female' ? 'selected' : '' %>>Female</option>
+      <option value="LGBT" <%= gender === 'LGBT' ? 'selected' : '' %>>LGBT</option>
+    </select>
+
+    <!-- Sort by Price -->
+    <select name="sortPrice" class="price-select small-select">
+      <option value="">Sort by Price</option>
+      <option value="asc" <%= sortPrice === 'asc' ? 'selected' : '' %>>Low → High</option>
+      <option value="desc" <%= sortPrice === 'desc' ? 'selected' : '' %>>High → Low</option>
+    </select>
+
     <button type="submit" class="filter-btn">Filter</button>
   </div>
 </form>
@@ -19,22 +37,21 @@
     <div class="perfume-card">
       <a href="/perfume/<%= p._id %>">
         <img src="<%= p.uri %>" alt="<%= p.perfumeName %>" />
-        <h3>
-          <%= p.perfumeName %>
-        </h3>
-        <p>
-          <%= p.brand ? p.brand.brandName : 'Unknown' %>
-        </p>
-        <p>
-          <%= p.targetAudience %>
-        </p>
-        <% if (p.concentration) { %>
-          <span class="badge">
-            <%= p.concentration %>
-          </span>
-          <% } %>
+        <h3><%= p.perfumeName %></h3>
+        <p><%= p.brand ? p.brand.brandName : 'Unknown' %></p>
+        <p><%= p.targetAudience %></p>
 
+        <% if (p.concentration || p.price) { %>
+          <div class="perfume-meta">
+            <% if (p.concentration) { %>
+              <span class="badge"><%= p.concentration %></span>
+            <% } %>
+            <% if (p.price) { %>
+              <span class="price"><%= p.price.toLocaleString() %> VND</span>
+            <% } %>
+          </div>
+        <% } %>
       </a>
     </div>
-    <% }) %>
+  <% }) %>
 </div>

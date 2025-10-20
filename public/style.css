@@ -700,11 +700,66 @@ textarea:focus {
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 2000;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
   max-width: 400px;
-  animation: slideInRight 0.3s ease-out;
-  z-index: 9999; /* ✅ Quan trọng */
+  animation: slideInRight 0.3s ease-out forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+toast.success {
+  background-color: #4CAF50;
+}
+
+.toast.error {
+  background-color: #f44336;
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: #4ade80;
+  color: #0a3d0a;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.toast.error {
+  background-color: #3d0a0a;
+  border-color: #5d1a1a;
+  color: #ff4444;
+}
+
+.toast.error::before {
+  content: "✕";
+  background-color: #ff4444;
+  color: #3d0a0a;
+}
+
+.toast.hide {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 * Average Rating Display */
@@ -811,6 +866,11 @@ textarea:focus {
   border-radius: 50%;
   font-weight: 700;
   font-size: 1rem;
+}
+
+#editRatingInput {
+  display: flex;
+  flex-direction: row;
 }
 
 /* Edit Comment Modal Form */
@@ -1308,6 +1368,15 @@ textarea:focus {
   font-size: 0.875rem;
   margin: 0 1rem;
 }
+
+
+.price {
+  font-weight: 600;
+  color: #fcfcfc;
+  font-size: 0.9rem;
+}
+
+
 
 /* Responsive */
 @media (max-width: 768px) {

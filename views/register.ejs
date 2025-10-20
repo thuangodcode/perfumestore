@@ -9,8 +9,6 @@
 </head>
 
 <body>
-
-
   <main>
     <div class="auth-container">
       <div class="auth-card">
@@ -22,35 +20,59 @@
         <form method="POST" action="/register">
           <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="you@example.com" 
+              required 
+              autocomplete="email">
           </div>
 
           <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Create a strong password" required
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Create a strong password" 
+              required 
               autocomplete="new-password">
           </div>
 
           <div class="form-group">
             <label for="name">Name</label>
-            <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name">
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              placeholder="Your full name" 
+              required 
+              autocomplete="name">
           </div>
 
           <div class="form-group">
             <label for="YOB">Year of Birth</label>
-            <input type="number" id="YOB" name="YOB" placeholder="1990" min="1900" max="2024" autocomplete="bday-year">
+            <input 
+              type="number" 
+              id="YOB" 
+              name="YOB" 
+              placeholder="1990" 
+              min="1900" 
+              max="2024" 
+              required 
+              autocomplete="bday-year">
           </div>
 
           <div class="form-group">
             <label for="gender">Gender</label>
-            <select id="gender" name="gender">    
+            <select id="gender" name="gender" required>
               <option value="">Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="LGBT">LGBT</option>
             </select>
           </div>
-
 
           <button type="submit">Create Account</button>
         </form>
@@ -62,7 +84,31 @@
     </div>
   </main>
 
+  <!-- ✅ Toast Container -->
+  <div id="toastContainer"></div>
 
+  <!-- ✅ Toast Script -->
+  <script>
+    <% if (successMessage && successMessage.length > 0) { %>
+      showToast('<%= successMessage[0] %>', 'success');
+    <% } %>
+    <% if (errorMessage && errorMessage.length > 0) { %>
+      showToast('<%= errorMessage[0] %>', 'error');
+    <% } %>
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
 </body>
 
 </html>

@@ -9,17 +9,48 @@ const { requireLogin } = require('../middlewares/auth');
 // 🏠 Trang chủ
 // --------------------
 router.get('/', async (req, res) => {
-  const { q, brand } = req.query;
-  const filter = {};
-  if (q) filter.perfumeName = { $regex: q, $options: 'i' };
-  if (brand) filter.brand = brand;
+  try {
+    const { q, brand, gender, sortPrice } = req.query;
+    const filter = {};
 
-  const perfumes = await Perfume.find(filter).populate('brand', 'brandName');
-  const brands = await Brand.find();
+    // 🔍 Tìm theo tên nước hoa
+    if (q) filter.perfumeName = { $regex: q, $options: 'i' };
 
-  res.render('index', { title: 'Perfume Store', perfumes, brands, q, brand });
-  req.session.successMessage = null;
+    // 🏷️ Lọc theo thương hiệu
+    if (brand) filter.brand = brand;
+
+    // 🚻 Lọc theo giới tính
+    if (gender) filter.targetAudience = gender;
+
+    // 📦 Tạo truy vấn cơ bản
+    let query = Perfume.find(filter).populate('brand', 'brandName');
+
+    // 💰 Sắp xếp theo giá
+    if (sortPrice === 'asc') query = query.sort({ price: 1 });
+    else if (sortPrice === 'desc') query = query.sort({ price: -1 });
+
+    // ⚙️ Thực thi truy vấn
+    const perfumes = await query.exec();
+    const brands = await Brand.find();
+
+    // 🖥️ Render trang
+    res.render('index', {
+      title: 'Perfume Store',
+      perfumes,
+      brands,
+      q,
+      brand,
+      gender,
+      sortPrice
+    });
+
+    req.session.successMessage = null;
+  } catch (error) {
+    console.error('Error loading perfumes:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
 
 // --------------------
 // 🔍 Chi tiết sản phẩm
@@ -145,8 +176,7 @@ router.get("/login", (req, res) => {
   const redirectUrl = req.query.redirect || "/";
   res.render("login", {
     redirectUrl,
-    successMessage: req.flash('success'),
-    errorMessage: req.flash('error')
+    
   });
 });
 
@@ -158,18 +188,18 @@ router.post('/login', async (req, res) => {
   try {
     const user = await Member.findOne({ email });
     if (!user) {
-      req.flash('error', 'Email không tồn tại');
+      req.flash('error', 'Email does not exist');
       return res.redirect("/login");
     }
 
     if (user.isDeleted) {
-      req.flash('error', `Tài khoản đã bị khoá. Lý do: ${user.deleteReason || 'Không xác định'}`);
+      req.flash('error', `Account has been locked. Reason: ${user.deleteReason || 'Unknown'}`);
       return res.redirect("/login");
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      req.flash('error', 'Sai mật khẩu');
+      req.flash('error', 'Wrong password');
       return res.redirect("/login");
     }
 
@@ -207,25 +237,36 @@ router.get('/logout', (req, res) => {
 
 // --------------------
 // 📝 Đăng ký
-// --------------------
-router.get('/register', (req, res) => res.render('register', { title: 'Register' }));
+
+router.get('/register', (req, res) => {
+  res.render('register', {
+    title: 'Register',
+
+  });
+});
 
 router.post('/register', async (req, res) => {
   const { email, password, name, YOB, gender } = req.body;
   try {
     const existing = await Member.findOne({ email });
-    if (existing)
-      return res.send('<script>alert("Email đã tồn tại");window.history.back();</script>');
+    if (existing) {
+      req.flash('error', 'Email already exists!');
+      return res.redirect('/register');
+    }
 
     const hash = await bcrypt.hash(password, 10);
     const member = new Member({ email, password: hash, name, YOB, gender });
     await member.save();
 
-    res.send('<script>alert("Đăng ký thành công!");window.location="/login";</script>');
+    // ✅ Dùng flash như login
+    req.flash('success', 'Registration successful! Please log in to continue.');
+    return res.redirect('/login');
   } catch (err) {
-    res.send(`<script>alert("Lỗi: ${err.message}");window.history.back();</script>`);
+    req.flash('error', `Lỗi: ${err.message}`);
+    return res.redirect('/register');
   }
 });
+
 
 // --------------------
 // 👤 Trang cá nhân
