@@ -2,99 +2,81 @@ const express = require("express");
 const router = express.Router();
 const Collector = require("../models/Collector");
 const bcrypt = require("bcryptjs");
+const { verifyToken } = require("../middlewares/verifyToken");
 
-// 🧱 Middleware kiểm tra login
-function isAuthenticated(req, res, next) {
-  if (!req.session.user) {
-    req.session.successMessage = "⚠️ Bạn cần đăng nhập trước!";
-    return res.redirect("/login");
-  }
-  next();
-}
-
-// 🧭 GET /profile — Hiển thị trang hồ sơ
-router.get("/", isAuthenticated, async (req, res) => {
+// ✅ Lấy thông tin cá nhân
+// GET /api/profile
+router.get("/", verifyToken, async (req, res) => {
   try {
-    const user = await Collector.findById(req.session.user._id).select("-password");
+    const user = await Collector.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
-
-    const successMessage = req.session.successMessage || null;
-    req.session.successMessage = null; // xoá sau khi render
-
-    res.render("profile", {
-      title: "Hồ sơ cá nhân",
+    res.json({
+      success: true,
       user,
-      successMessage
     });
   } catch (err) {
-    console.error("Lỗi khi lấy thông tin user:", err);
-    res.status(500).send("Lỗi server");
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-// 📝 POST /profile/update — Cập nhật thông tin cá nhân
-router.post("/update", isAuthenticated, async (req, res) => {
+// ✅ Cập nhật thông tin cá nhân
+// PUT /api/profile/update
+router.put("/update", verifyToken, async (req, res) => {
   try {
     const { name, YOB, gender } = req.body;
 
-    // ✅ Cập nhật thông tin trong MongoDB
-    await Collector.findByIdAndUpdate(req.session.user._id, {
-      name,
-      YOB,
-      gender,
+    const updatedUser = await Collector.findByIdAndUpdate(
+      req.user.id,
+      { name, YOB, gender },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser)
+      return res.status(404).json({ success: false, message: "User not found" });
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
     });
-
-    // ✅ Lấy lại bản mới để đồng bộ session (chuyển sang plain object)
-    const updatedUser = await Collector.findById(req.session.user._id)
-      .select("-password")
-      .lean();
-
-    // ✅ Cập nhật session user
-    req.session.user = updatedUser;
-
-    // ✅ Hiển thị thông báo (toast)
-    req.session.successMessage = "✅ Cập nhật thông tin thành công!";
-    res.redirect("/profile");
   } catch (err) {
-    console.error("❌ Lỗi khi cập nhật thông tin:", err);
-    req.session.successMessage = "❌ Có lỗi khi cập nhật thông tin!";
-    res.redirect("/profile");
+    console.error("Error updating profile:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-// 📝 POST /profile/change-password — Đổi mật khẩu
-router.post("/change-password", isAuthenticated, async (req, res) => {
+// ✅ Đổi mật khẩu
+// PUT /api/profile/change-password
+router.put("/change-password", verifyToken, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const user = await Collector.findById(req.session.user._id);
 
-    if (!user) {
-      req.session.successMessage = "❌ Không tìm thấy người dùng!";
-      return res.redirect("/profile");
-    }
+    const user = await Collector.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      req.session.successMessage = "⚠️ Mật khẩu cũ không chính xác!";
-      return res.redirect("/profile");
-    }
+    if (!isMatch)
+      return res.status(400).json({ success: false, message: "Old password is incorrect" });
+
+    if (!newPassword || newPassword.length < 6)
+      return res
+        .status(400)
+        .json({ success: false, message: "New password must be at least 6 characters" });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
 
-    req.session.successMessage = "🔒 Đổi mật khẩu thành công!";
-    res.redirect("/profile");
+    res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
   } catch (err) {
-    console.error("❌ Lỗi đổi mật khẩu:", err);
-    req.session.successMessage = "❌ Có lỗi khi đổi mật khẩu!";
-    res.redirect("/profile");
+    console.error("Error changing password:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
 
 module.exports = router;

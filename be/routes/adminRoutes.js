@@ -1,3 +1,4 @@
+const express = require('express');
 const router = require('express').Router();
 const { requireAdminSession } = require('../middlewares/adminSession');
 const Perfume = require('../models/Perfume');
@@ -6,49 +7,57 @@ const Collector = require('../models/Collector');
 
 // ✅ Trang Dashboard
 // GET /admin/dashboard
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', requireAdmin, async (req, res) => {
   try {
-    const perfumes = await Perfume.find().populate('brand', 'brandName');
-    const perfumesCount = await Perfume.countDocuments();
-    const brandsCount = await Brand.countDocuments();
-    const collectorsCount = await Collector.countDocuments();
+    // Lấy toàn bộ thống kê
+    const [perfumes, perfumesCount, brandsCount, collectorsCount] = await Promise.all([
+      Perfume.find().populate('brand', 'brandName'),
+      Perfume.countDocuments(),
+      Brand.countDocuments(),
+      Collector.countDocuments(),
+    ]);
 
-    res.render('admin/dashboard', {
-      title: 'Admin Dashboard',
-      admin: req.session.user,
+    res.json({
+      success: true,
+      message: 'Dashboard data fetched successfully',
+      stats: {
+        perfumesCount,
+        brandsCount,
+        collectorsCount,
+      },
       perfumes,
-      perfumesCount,
-      brandsCount,
-      collectorsCount,
     });
-
   } catch (err) {
-    res.send('Lỗi: ' + err.message);
+    console.error('Dashboard Error:', err);
+    res.status(500).json({ success: false, message: 'Error loading dashboard', error: err.message });
   }
 });
 
 
-
 // ✅ Trang form thêm sản phẩm mới
-router.get('/perfumes/add', async (req, res) => {
+router.get('/brands', requireAdmin, async (req, res) => {
   try {
-    // Lấy danh sách brand để chọn
-    const brands = await Brand.find();
-
-    res.render('admin/addPerfume', {
-      title: 'Add New Product',
-      admin: req.session.user,
-      brands
-    });
+    const brands = await Brand.find().select('brandName');
+    res.json({ success: true, brands });
   } catch (err) {
-    res.send('Lỗi: ' + err.message);
+    res.status(500).json({ success: false, message: 'Error loading brands', error: err.message });
   }
 });
 
 // ✅ Xử lý thêm sản phẩm mới
-router.post('/perfumes/add', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { perfumeName, uri, price, concentration, description, ingredients, volume, targetAudience, brand } = req.body;
+    const {
+      perfumeName,
+      uri,
+      price,
+      concentration,
+      description,
+      ingredients,
+      volume,
+      targetAudience,
+      brand,
+    } = req.body;
 
     const newPerfume = new Perfume({
       perfumeName,
@@ -59,214 +68,243 @@ router.post('/perfumes/add', async (req, res) => {
       ingredients,
       volume,
       targetAudience,
-      brand
+      brand,
     });
 
     await newPerfume.save();
-    req.flash('success', 'Product added successfully!'); // ✅ Thêm flash
-    res.redirect('/admin/dashboard');
+
+    res.status(201).json({
+      success: true,
+      message: 'Product added successfully!',
+      perfume: newPerfume,
+    });
   } catch (err) {
-    req.flash('error', 'Error adding product: ' + err.message);
-    res.redirect('/admin/dashboard');
+    res.status(500).json({
+      success: false,
+      message: 'Error adding product',
+      error: err.message,
+    });
   }
 });
 
 
 // ✅ Trang form chỉnh sửa
-router.get('/perfumes/edit/:id', async (req, res) => {
-  const perfume = await Perfume.findById(req.params.id).populate('brand');
+router.get('/:id', requireAdmin, async (req, res) => {
+  try {
+    const perfume = await Perfume.findById(req.params.id).populate('brand', 'brandName');
+    if (!perfume) return res.status(404).json({ success: false, message: 'Perfume not found' });
 
-  res.render('admin/editPerfume', {
-    title: 'Edit Product',
-    admin: req.session.user,
-    perfume,
-  });
+    res.json({ success: true, perfume });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Error fetching perfume', error: err.message });
+  }
 });
 
 // ✅ Xử lý lưu chỉnh sửa
-router.post('/perfumes/edit/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
-    await Perfume.findByIdAndUpdate(req.params.id, req.body);
-    req.flash('success', 'Product update successful!');
-    res.redirect('/admin/dashboard');
+    const updatedPerfume = await Perfume.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedPerfume)
+      return res.status(404).json({ success: false, message: 'Perfume not found' });
+
+    res.json({ success: true, message: 'Product updated successfully', perfume: updatedPerfume });
   } catch (err) {
-    req.flash('error', 'Error while updating product: ' + err.message);
-    res.redirect('/admin/dashboard');
+    res.status(500).json({ success: false, message: 'Error updating perfume', error: err.message });
   }
 });
 
 // ✅ Xóa sản phẩm (Perfume)
-router.post('/perfumes/delete/:id', requireAdminSession, async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
-    const perfumeId = req.params.id;
-    await Perfume.findByIdAndDelete(perfumeId);
-    req.flash('success', 'Product deleted successfully!');
-    res.redirect('/admin/dashboard');
+    const deleted = await Perfume.findByIdAndDelete(req.params.id);
+    if (!deleted)
+      return res.status(404).json({ success: false, message: 'Perfume not found' });
+
+    res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
-    req.flash('error', 'Error while deleting product: ' + err.message);
-    res.redirect('/admin/dashboard');
+    res.status(500).json({ success: false, message: 'Error deleting perfume', error: err.message });
   }
 });
 
-
 // 📌 Trang liệt kê Brands (UI Admin)
-router.get('/brands', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
-    const brands = await Brand.find();
+    const [brands, perfumesCount, brandsCount, collectorsCount] = await Promise.all([
+      Brand.find().sort({ brandName: 1 }),
+      Perfume.countDocuments(),
+      Brand.countDocuments(),
+      Collector.countDocuments(),
+    ]);
 
-    // ✅ Thống kê các số liệu
-    const perfumesCount = await Perfume.countDocuments();
-    const brandsCount = await Brand.countDocuments();
-    const collectorsCount = await Collector.countDocuments();
-
-    res.render('admin/brands', {
-      title: 'Brand List',
-      admin: req.session.user,
-      user: req.session.user,
+    res.json({
+      success: true,
+      message: 'Brand list fetched successfully',
       brands,
-      perfumesCount,
-      brandsCount,
-      collectorsCount,
-        successMessage: req.flash('success'),
-  errorMessage: req.flash('error')
+      stats: {
+        perfumesCount,
+        brandsCount,
+        collectorsCount,
+      },
     });
   } catch (err) {
-    res.send('Lỗi: ' + err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching brand list',
+      error: err.message,
+    });
   }
 });
 
 // Trang form thêm Brand mới
-router.get('/brands/add', (req, res) => {
-  res.render('admin/addBrand', {
-    title: 'Add New Brand',
-    admin: req.session.user
-  });
-});
-
-// Xử lý thêm Brand mới
-router.post('/brands/add', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
     let { brandName } = req.body;
-    brandName = brandName.trim(); // Không ép thành UPPERCASE
+    if (!brandName || brandName.trim() === '')
+      return res.status(400).json({ success: false, message: 'Brand name is required' });
 
-    // Kiểm tra trùng case-insensitive
+    brandName = brandName.trim();
+
+    // Kiểm tra trùng tên (case-insensitive)
     const existing = await Brand.findOne({ brandName }).collation({ locale: 'en', strength: 2 });
-    if (existing) {
-      req.flash('error', 'The brand name already exists!');
-      return res.redirect('/admin/brands/add');
-    }
+    if (existing)
+      return res.status(400).json({ success: false, message: 'Brand already exists' });
 
     const newBrand = new Brand({ brandName });
     await newBrand.save();
 
-    req.flash('success', 'Brand added successfully!');
-    res.redirect('/admin/brands');
+    res.status(201).json({
+      success: true,
+      message: 'Brand added successfully',
+      brand: newBrand,
+    });
   } catch (err) {
-    req.flash('error', 'Error adding brand: ' + err.message);
-    res.redirect('/admin/brands/add');
+    res.status(500).json({
+      success: false,
+      message: 'Error adding brand',
+      error: err.message,
+    });
   }
 });
 
 
 
 // Trang form chỉnh sửa Brand
-router.get('/brands/edit/:id', async (req, res) => {
+router.get('/:id', requireAdmin, async (req, res) => {
   try {
     const brand = await Brand.findById(req.params.id);
-    if (!brand) {
-      return res.redirect('/admin/brands');
-    }
+    if (!brand) return res.status(404).json({ success: false, message: 'Brand not found' });
 
-    res.render('admin/editBrand', {
-      title: 'Edit Brand',
-      admin: req.session.user,
-      brand
-    });
+    res.json({ success: true, brand });
   } catch (err) {
-    res.send('Lỗi: ' + err.message);
+    res.status(500).json({ success: false, message: 'Error fetching brand', error: err.message });
   }
 });
 
 // Xử lý lưu chỉnh sửa Brand
-router.post('/brands/edit/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const { brandName } = req.body;
-    await Brand.findByIdAndUpdate(req.params.id, { brandName });
-    req.flash('success', 'Brand update successful!');
-    res.redirect('/admin/brands');
+    if (!brandName || brandName.trim() === '')
+      return res.status(400).json({ success: false, message: 'Brand name required' });
+
+    const updatedBrand = await Brand.findByIdAndUpdate(
+      req.params.id,
+      { brandName: brandName.trim() },
+      { new: true }
+    );
+
+    if (!updatedBrand)
+      return res.status(404).json({ success: false, message: 'Brand not found' });
+
+    res.json({ success: true, message: 'Brand updated successfully', brand: updatedBrand });
   } catch (err) {
-    req.flash('error', 'Error when updating brand: ' + err.message);
-    res.redirect('/admin/brands');
+    res.status(500).json({
+      success: false,
+      message: 'Error updating brand',
+      error: err.message,
+    });
   }
 });
 
-// 📌 Trang liệt kê Collectors (Admin xem tất cả collector)
-router.get('/collectors', requireAdminSession, async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
-    // ✅ Collector đang hoạt động (chưa xoá mềm)
-    const collectors = await Collector.find({ isDeleted: false }).select('-password');
+    const [activeCollectors, deletedCollectors, perfumesCount, brandsCount, collectorsCount] =
+      await Promise.all([
+        Collector.find({ isDeleted: false }).select('-password').sort({ createdAt: -1 }),
+        Collector.find({ isDeleted: true }).select('-password').sort({ updatedAt: -1 }),
+        Perfume.countDocuments(),
+        Brand.countDocuments(),
+        Collector.countDocuments(),
+      ]);
 
-    // ✅ Collector đã xoá mềm
-    const deletedCollectors = await Collector.find({ isDeleted: true }).select('-password');
-
-    // ✅ Thống kê
-    const perfumesCount = await Perfume.countDocuments();
-    const brandsCount = await Brand.countDocuments();
-    const collectorsCount = await Collector.countDocuments();
-
-    res.render('admin/collectors', {
-      title: 'Collector List',
-      admin: req.session.user,
-      collectors,
-      deletedCollectors, 
-      perfumesCount,
-      brandsCount,
-      collectorsCount,
-      successMessage: req.flash('success'),
-      errorMessage: req.flash('error')
+    res.json({
+      success: true,
+      message: 'Collectors fetched successfully',
+      data: {
+        activeCollectors,
+        deletedCollectors,
+        stats: { perfumesCount, brandsCount, collectorsCount },
+      },
     });
-
   } catch (err) {
-    res.send('Error when getting collector list: ' + err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching collectors',
+      error: err.message,
+    });
   }
 });
 
-// ✅ Xóa mềm Collector (Ban user)
-router.post('/collectors/delete/:id', requireAdminSession, async (req, res) => {
+router.patch('/:id/ban', requireAdmin, async (req, res) => {
   try {
-    const reason = req.body.deleteReason || "Không xác định";
+    const reason = req.body.deleteReason || 'Không xác định';
 
-    await Collector.findByIdAndUpdate(req.params.id, {
-      isDeleted: true,
-      deleteReason: reason
+    const collector = await Collector.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deleteReason: reason },
+      { new: true }
+    ).select('-password');
+
+    if (!collector) return res.status(404).json({ success: false, message: 'Collector not found' });
+
+    res.json({
+      success: true,
+      message: 'Collector has been banned',
+      collector,
     });
-
-    req.flash('success', 'Account locked and reason saved!');
-    res.redirect('/admin/collectors');
   } catch (err) {
-    req.flash('error', 'Error while deleting collector: ' + err.message);
-    res.redirect('/admin/collectors');
+    res.status(500).json({
+      success: false,
+      message: 'Error banning collector',
+      error: err.message,
+    });
   }
 });
 
 // ✅ Khôi phục Collector (Unban user)
-router.post('/collectors/restore/:id', requireAdminSession, async (req, res) => {
+router.patch('/:id/restore', requireAdmin, async (req, res) => {
   try {
-    await Collector.findByIdAndUpdate(req.params.id, {
-      isDeleted: false,
-      deleteReason: ''
-    });
+    const collector = await Collector.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: false, deleteReason: '' },
+      { new: true }
+    ).select('-password');
 
-    req.flash('success', 'Account has been restored!');
-    res.redirect('/admin/collectors');
+    if (!collector) return res.status(404).json({ success: false, message: 'Collector not found' });
+
+    res.json({
+      success: true,
+      message: 'Collector restored successfully',
+      collector,
+    });
   } catch (err) {
-    req.flash('error', 'Error while recovering collector: ' + err.message);
-    res.redirect('/admin/collectors');
+    res.status(500).json({
+      success: false,
+      message: 'Error restoring collector',
+      error: err.message,
+    });
   }
 });
-
-
-
 
 
 module.exports = router;

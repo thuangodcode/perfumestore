@@ -24,7 +24,13 @@
   "devDependencies": {
     "nodemon": "^3.1.10"
   },
-  "keywords": ["node", "express", "backend", "api", "mongodb"],
+  "keywords": [
+    "node",
+    "express",
+    "backend",
+    "api",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC"
 }

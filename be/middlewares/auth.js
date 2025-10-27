@@ -1,60 +1,49 @@
 const jwt = require('jsonwebtoken');
 const Collector = require('../models/Collector');
 
+/* -----------------------------------------------------
+ 🧩 Xác thực JWT Token
+----------------------------------------------------- */
 exports.verifyToken = async (req, res, next) => {
-  const header = req.headers['authorization'];
-  if (!header) return res.status(401).json({ msg: 'No token' });
-  const token = header.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, isAdmin }
-    // optional: fetch full user
+    const header = req.headers['authorization'];
+    if (!header)
+      return res.status(401).json({ success: false, message: 'No token provided' });
+
+    const token = header.split(' ')[1]; // Format: Bearer <token>
+    if (!token)
+      return res.status(401).json({ success: false, message: 'Invalid token format' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'perfume-secret');
+    req.user = decoded; // { id, email, isAdmin, iat, exp }
+
+    // 👉 Optional: lấy thông tin người dùng đầy đủ (không có password)
     req.currentUser = await Collector.findById(decoded.id).select('-password');
+
     next();
-  } catch (err) { res.status(401).json({ msg: 'Invalid token' }); }
+  } catch (err) {
+    console.error('JWT Error:', err.message);
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
 };
 
+/* -----------------------------------------------------
+ 🔐 Kiểm tra quyền Admin
+----------------------------------------------------- */
 exports.isAdmin = (req, res, next) => {
   if (req.user && req.user.isAdmin) return next();
-  return res.status(403).json({ msg: 'Admin only' });
+  return res.status(403).json({ success: false, message: 'Admin only' });
 };
 
+/* -----------------------------------------------------
+ 👤 Chỉ cho phép chính chủ (Self)
+----------------------------------------------------- */
 exports.isSelf = (req, res, next) => {
-  // used for routes like /members/:id where only owner can edit
-  if (!req.user) return res.status(401).json({ msg: 'No token' });
+  if (!req.user)
+    return res.status(401).json({ success: false, message: 'No token provided' });
+
   if (req.user.id === req.params.id) return next();
-  return res.status(403).json({ msg: 'Forbidden: can only modify own account' });
+  return res
+    .status(403)
+    .json({ success: false, message: 'Forbidden: can only modify own account' });
 };
-
-// middleware/requireLogin.js
-exports.requireLogin = (req, res, next) => {
-  if (req.session.user) return next(); // đã đăng nhập → cho qua
-
-  // ❗ Lưu URL mà user định truy cập
-  req.session.returnTo = req.originalUrl;
-
-  // Chuyển đến trang đăng nhập
-  res.redirect('/login');
-};
-
-// middlewares/auth.js
-exports.blockAdminFromUserPages = (req, res, next) => {
-  const user = req.session.user;
-
-  if (!user) return next();
-  if (req.originalUrl === '/logout') return next();
-
-  if (user.isAdmin) {
-    if (req.originalUrl.startsWith('/admin') || req.originalUrl.startsWith('/profile')) {
-      return next();
-    }
-    return res.redirect('/admin/dashboard'); // giữ nguyên, flash xử lý ở dashboard
-  }
-
-  next();
-};
-
-
-
-
-

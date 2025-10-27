@@ -1,90 +1,56 @@
-// src/index.js
-const path = require('path');
+// be/index.js
 require('dotenv').config();
-
 const express = require('express');
-const session = require('express-session');
-const flash = require('connect-flash');
-const expressLayouts = require('express-ejs-layouts');
 const mongoose = require('mongoose');
 const cors = require('cors');
-
-// ✅ IMPORT middleware
-const { blockAdminFromUserPages } = require('./middlewares/auth');
-const { requireAdminSession } = require('./middlewares/adminSession');
+const session = require('express-session');
+const flash = require('connect-flash');
 
 const app = express();
 
-/* View Engine */
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, './views'));
-app.use(expressLayouts);
-app.set('layout', 'layout');
-
-/* Middlewares */
-app.use(cors());
+// ✅ Middleware cơ bản
+app.use(cors({
+  origin: 'http://localhost:5173', // React FE port
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'perfume-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
-  })
-);
+// ✅ Session (nếu vẫn cần)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'perfume-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
 
 app.use(flash());
-app.use(express.static(path.join(__dirname, './public')));
 
-/* Gán biến toàn cục cho EJS */
-app.use((req, res, next) => {
-  res.locals.title = "Perfume Store";
-  res.locals.user = req.session.user || null;
-  res.locals.admin = req.session.admin || null;
-  res.locals.successMessage = req.flash('success');
-  res.locals.errorMessage = req.flash('error');
-  next();
-});
-
-/* Import Routes */
+// ✅ Import routes (REST API)
 const brandRouter = require('./routes/brand');
 const perfumeRouter = require('./routes/perfume');
 const authRouter = require('./routes/auth');
 const collectorRouter = require('./routes/collector');
 const commentRouter = require('./routes/comment');
 
-
-const ejsRoutes = require('./routes/ejsRoutes');
-const profileRoute = require('./routes/profileRoute');
-const adminRoutes = require('./routes/adminRoutes');
-
-/* ✅ API Routes */
+// ✅ Sử dụng API routes
 app.use('/api/brands', brandRouter);
 app.use('/api/perfumes', perfumeRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/collectors', collectorRouter);
-app.use('/api/perfumes', commentRouter);
+app.use('/api/comments', commentRouter);
 
-app.use('/api/v1/auth', require('./routes/apiAuth'));
+// ✅ Route test root
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'Perfume Store API is running!' });
+});
 
-/* ✅ Chặn ADMIN vào trang người dùng (chạy TRƯỚC ejsRoutes và profileRoute) */
-app.use(blockAdminFromUserPages);
-
-/* ✅ Routes dành cho USER */
-app.use('/profile', profileRoute);
-app.use('/', ejsRoutes);
-
-/* ✅ Routes dành cho ADMIN (bảo vệ bởi requireAdminSession) */
-app.use('/admin', requireAdminSession, adminRoutes);
-
-/* Start Server */
+// ✅ Kết nối MongoDB
 const PORT = process.env.PORT || 5000;
-mongoose
-  .connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('MongoDB connected');
-    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+    console.log('✅ MongoDB connected');
+    console.log("✅ MONGO_URI =", process.env.MONGO_URI);
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
-  .catch((err) => console.error(err));
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
