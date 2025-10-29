@@ -97,7 +97,7 @@ exports.updateComment = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const { perfumeId, commentId } = req.params;
-    const userId = req.user.id;
+    const currentUser = req.user; // id + isAdmin
     const perfume = await Perfume.findById(perfumeId);
     if (!perfume)
       return res.status(404).json({ success: false, message: 'Perfume not found' });
@@ -106,16 +106,28 @@ exports.deleteComment = async (req, res) => {
     if (!comment)
       return res.status(404).json({ success: false, message: 'Comment not found' });
 
-    if (comment.author.toString() !== userId)
+    // 🔹 Lấy authorId dạng string
+    let authorId = '';
+    if (comment.author?._id) authorId = comment.author._id.toString();
+    else if (typeof comment.author === 'string') authorId = comment.author;
+    else if (comment.author?._id?.toString) authorId = comment.author._id.toString();
+
+    const isAdmin = currentUser.isAdmin === true;
+    const isAuthor = authorId === currentUser.id;
+
+    console.log('==== DELETE COMMENT DEBUG ====');
+    console.log('currentUser:', currentUser);
+    console.log('comment.author:', comment.author);
+    console.log('authorId:', authorId);
+    console.log('isAdmin:', isAdmin, 'isAuthor:', isAuthor);
+
+    if (!isAdmin && !isAuthor)
       return res.status(403).json({ success: false, message: 'You cannot delete this comment' });
 
     comment.deleteOne();
     await perfume.save();
 
-    res.json({
-      success: true,
-      message: 'Comment deleted successfully'
-    });
+    res.json({ success: true, message: 'Comment deleted successfully' });
   } catch (err) {
     console.error('Error deleting comment:', err);
     res.status(500).json({
@@ -125,6 +137,7 @@ exports.deleteComment = async (req, res) => {
     });
   }
 };
+
 
 // --------------------
 // 🔍 Get perfume detail (with comments + avg rating)

@@ -15,10 +15,19 @@ exports.verifyToken = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid token format' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'perfume-secret');
-    req.user = decoded; // { id, email, isAdmin, iat, exp }
 
-    // 👉 Optional: lấy thông tin người dùng đầy đủ (không có password)
-    req.currentUser = await Collector.findById(decoded.id).select('-password');
+    // Lấy thông tin người dùng đầy đủ từ DB
+    const user = await Collector.findById(decoded.id).select('-password');
+    if (!user)
+      return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Gán thông tin cho req.user luôn đầy đủ isAdmin
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      isAdmin: user.isAdmin
+    };
+    req.currentUser = user;
 
     next();
   } catch (err) {
@@ -26,6 +35,7 @@ exports.verifyToken = async (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
 };
+
 
 /* -----------------------------------------------------
  🔐 Kiểm tra quyền Admin

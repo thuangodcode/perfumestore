@@ -104,6 +104,14 @@ router.get('/:id', async (req, res) => {
 // 📝 Thêm bình luận
 router.post('/:perfumeId/comments', verifyToken, async (req, res) => {
   try {
+    // 🚫 Chặn admin comment
+    if (req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin cannot add comments'
+      });
+    }
+
     const { rating, content } = req.body;
 
     // 🔎 Tìm perfume
@@ -159,6 +167,7 @@ router.post('/:perfumeId/comments', verifyToken, async (req, res) => {
   }
 });
 
+
 // ======================================================
 // ✏️ PUT /api/perfumes/:perfumeId/comments/:commentId → Cập nhật bình luận
 // ======================================================
@@ -209,40 +218,49 @@ router.put('/:perfumeId/comments/:commentId', verifyToken, async (req, res) => {
 // ======================================================
 // ❌ DELETE /api/perfumes/:perfumeId/comments/:commentId → Xoá bình luận
 // ======================================================
+// DELETE comment
 router.delete('/:perfumeId/comments/:commentId', verifyToken, async (req, res) => {
   try {
     const perfume = await Perfume.findById(req.params.perfumeId);
-
-    if (!perfume) {
-      return res.status(404).json({ success: false, message: 'Perfume not found' });
-    }
+    if (!perfume) return res.status(404).json({ success: false, message: 'Perfume not found' });
 
     const comment = perfume.comments.id(req.params.commentId);
-    if (!comment) {
-      return res.status(404).json({ success: false, message: 'Comment not found' });
-    }
+    if (!comment) return res.status(404).json({ success: false, message: 'Comment not found' });
 
-    // ✅ Chỉ cho phép xoá comment của chính mình
-    if (comment.author.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You are not allowed to delete this comment'
-      });
+    const currentUser = req.user;
+    if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    // 🔹 Lấy authorId luôn đúng dạng string
+    let authorId = '';
+    if (comment.author?._id) authorId = comment.author._id.toString();
+    else if (typeof comment.author === 'string') authorId = comment.author;
+    else if (comment.author?._id?.toString) authorId = comment.author._id.toString();
+
+    const isAdmin = currentUser.isAdmin === true;
+    const isAuthor = authorId === currentUser.id;
+
+    console.log('==== DELETE COMMENT DEBUG ====');
+    console.log('currentUser:', currentUser);
+    console.log('comment.author:', comment.author);
+    console.log('authorId:', authorId);
+    console.log('isAdmin:', isAdmin, 'isAuthor:', isAuthor);
+
+    if (!isAdmin && !isAuthor) {
+      return res.status(403).json({ success: false, message: 'You cannot delete this comment' });
     }
 
     comment.deleteOne();
     await perfume.save();
 
-    res.json({ success: true, message: 'Comment deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting comment:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while deleting comment',
-      error: error.message
-    });
+    console.log(`Comment ${req.params.commentId} deleted by ${currentUser.id} (isAdmin: ${isAdmin})`);
+    return res.json({ success: true, message: 'Comment deleted successfully' });
+
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 });
+
 
 // // 🔑 Login
 // // --------------------

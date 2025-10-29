@@ -1,32 +1,46 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Layout } from "antd";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
-import ProtectedRoute from "./components/ProtectedRoute";
+import Detail from "./pages/Detail"; // ← import trang Detail
+import AdminRoute from "./components/AdminRoute";
+import AdminSystem from "./pages/AdminSystem";
 
+const { Content } = Layout;
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Auth routes */}
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Layout style={{ minHeight: "100vh" }}>
+        <Navbar />
+        <Content style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/perfumes/:id" element={<Detail />} /> {/* ← thêm route Detail */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Protected (sau khi login) */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <div style={{ padding: 50 }}>
-                <h2>Welcome to Dashboard 🎉</h2>
-              </div>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+            <Route path="*" element={<Navigate to="/" />} />
+<Route
+  path="/admin/system"
+  element={
+    <AdminRoute>
+      <AdminSystem />
+    </AdminRoute>
+  }
+/>
+
+
+          </Routes>
+        </Content>
+        <Footer />
+      </Layout>
     </BrowserRouter>
   );
 }

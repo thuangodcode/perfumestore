@@ -1,27 +1,32 @@
-import { useState } from "react"
-import { Form, Input, Button, Typography, message } from "antd"
-import { loginUser } from "../api/authApi"
-import { useNavigate, Link } from "react-router-dom"
-import "../index.css"
+import { useState, useContext } from "react";
+import { Form, Input, Button, Typography, message } from "antd";
+import { loginUser } from "../api/authApi";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import "../index.css";
 
 export default function Login() {
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // lấy hàm login từ context
 
   const onFinish = async (values) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await loginUser(values)
-      message.success(res.data.message)
-      localStorage.setItem("token", res.data.token)
-      localStorage.setItem("user", JSON.stringify(res.data.user))
-      navigate("/dashboard")
+      const res = await loginUser(values);
+      message.success(res.data.message);
+
+      // Lưu user và token vào AuthContext + localStorage
+      login(res.data.user, res.data.token);
+
+      // Chuyển hướng về Home sau login
+      navigate("/");
     } catch (err) {
-      message.error(err.response?.data?.message || "Login failed")
+      message.error(err.response?.data?.message || "Login thất bại");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-container">
@@ -36,21 +41,33 @@ export default function Login() {
         </div>
 
         <Form layout="vertical" onFinish={onFinish} className="auth-form">
-          <Form.Item name="email" rules={[{ required: true, message: "Vui lòng nhập email" }]}>
+          <Form.Item
+            name="email"
+            rules={[{ required: true, message: "Vui lòng nhập email" }]}
+          >
             <Input
               placeholder="Email của bạn"
               className="auth-input"
               prefix={<span className="auth-input-icon">✉</span>}
             />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
+          >
             <Input.Password
               placeholder="Mật khẩu"
               className="auth-input"
               prefix={<span className="auth-input-icon">🔒</span>}
             />
           </Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block className="auth-button">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            block
+            className="auth-button"
+          >
             ĐĂNG NHẬP
           </Button>
         </Form>
@@ -67,5 +84,5 @@ export default function Login() {
       </div>
       <div className="auth-decorative-bottom">✦</div>
     </div>
-  )
+  );
 }
