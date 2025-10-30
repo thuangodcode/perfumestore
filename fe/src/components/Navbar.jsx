@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Layout, Menu, Button, Dropdown, Avatar, Typography, message, Space } from "antd";
+import { Layout, Button, Dropdown, Avatar, Typography, message, Space } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { AuthContext } from "../context/AuthContext.jsx";
 
@@ -14,32 +14,44 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      message.success("Đăng xuất thành công!");
+      message.success("Log out successfully!");
       navigate("/");
     } catch (err) {
-      message.error("Đăng xuất thất bại!");
+      message.error("Logout failed!");
     }
   };
 
-const menu = {
-  items: [
-    ...(user?.isAdmin
-      ? [
-          {
-            key: "system",
-            label: "System",
-            onClick: () => navigate("/admin/system"),
-          },
-        ]
-      : []),
-    {
-      key: "logout",
-      label: "Logout",
-      onClick: handleLogout,
-    },
-  ],
-};
+  // 🆕 Kiểm tra nếu user đăng nhập bằng Google
+  const isGoogleUser = user?.authProvider === 'google';
 
+  const menu = {
+    items: [
+      // 🆕 Chỉ hiển thị Profile nếu KHÔNG phải Google user
+      ...(!isGoogleUser ? [
+        {
+          key: "profile",
+          label: "Profile",
+          onClick: () => navigate("/profile"),
+        }
+      ] : []),
+      
+      // Hiển thị System nếu là admin
+      ...(user?.isAdmin ? [
+        {
+          key: "system",
+          label: "System",
+          onClick: () => navigate("/admin/system"),
+        }
+      ] : []),
+      
+      // Logout luôn hiển thị
+      {
+        key: "logout",
+        label: "Logout",
+        onClick: handleLogout,
+      },
+    ],
+  };
 
   return (
     <Header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -70,7 +82,12 @@ const menu = {
 
             <Dropdown menu={menu} placement="bottomRight">
               <div style={{ cursor: "pointer", display: "flex", alignItems: "center", color: "#fff" }}>
-                <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
+                {/* 🆕 Hiển thị avatar từ Google nếu có */}
+                {user.avatar ? (
+                  <Avatar src={user.avatar} style={{ marginRight: 8 }} />
+                ) : (
+                  <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
+                )}
                 <Text style={{ color: "#fff" }}>{user.name}</Text>
               </div>
             </Dropdown>

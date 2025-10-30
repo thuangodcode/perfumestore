@@ -92,3 +92,50 @@ exports.login = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
+
+// GET profile
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await Collector.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    res.json({
+      success: true,
+      data: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        isAdmin: user.isAdmin,
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PUT profile (update name / password)
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, currentPassword, newPassword } = req.body;
+    const user = await Collector.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (name) user.name = name;
+
+    if (currentPassword && newPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) return res.status(400).json({ success: false, message: 'Current password incorrect' });
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+    res.json({ success: true, message: 'Profile updated successfully' });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+

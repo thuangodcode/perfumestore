@@ -1,75 +1,73 @@
-import { useState, useEffect, useMemo } from "react";
-import { Input, Select, Spin, Button } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import "../perfume.css";
+import { useState, useEffect, useMemo } from "react"
+import { Input, Select, Spin, Button } from "antd"
+import { SearchOutlined } from "@ant-design/icons"
+import axios from "axios"
+import { useNavigate } from "react-router-dom"
+import "../perfume.css"
 
-const { Option } = Select;
+const { Option } = Select
 
 export default function Home() {
-  const navigate = useNavigate();
-  const [perfumes, setPerfumes] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const [perfumes, setPerfumes] = useState([])
+  const [brands, setBrands] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const [q, setQ] = useState("");
-const [brand, setBrand] = useState(undefined);
-const [gender, setGender] = useState(undefined);
-const [sortPrice, setSortPrice] = useState(undefined);
+  const [q, setQ] = useState("")
+  const [brand, setBrand] = useState(undefined)
+  const [gender, setGender] = useState(undefined)
+  const [sortPrice, setSortPrice] = useState(undefined)
+  const [concentration, setConcentration] = useState(undefined)
 
 
   // Fetch all perfumes once
   const fetchPerfumes = async () => {
     try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/perfumes");
-      const data = res.data?.data || [];
-      setPerfumes(data);
+      setLoading(true)
+      const res = await axios.get("http://localhost:5000/api/perfumes")
+      const data = res.data?.data || []
+      setPerfumes(data)
 
       // Lấy danh sách brand duy nhất
-      setBrands([...new Set(data.map((p) => p.brand?.brandName).filter(Boolean))]);
+      setBrands([...new Set(data.map((p) => p.brand?.brandName).filter(Boolean))])
     } catch (err) {
-      console.error("Error fetching perfumes:", err);
-      setPerfumes([]);
-      setBrands([]);
+      console.error("Error fetching perfumes:", err)
+      setPerfumes([])
+      setBrands([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchPerfumes();
-  }, []);
+    fetchPerfumes()
+  }, [])
+
+  const concentrations = useMemo(() => {
+  return [...new Set(perfumes.map((p) => p.concentration).filter(Boolean))]
+}, [perfumes])
+
 
   // Filter & sort trên front-end
-  const filteredPerfumes = useMemo(() => {
-    let result = [...perfumes];
+const filteredPerfumes = useMemo(() => {
+  let result = [...perfumes]
 
-    if (q) {
-      result = result.filter((p) =>
-        p.perfumeName.toLowerCase().includes(q.toLowerCase())
-      );
-    }
+  if (q) result = result.filter((p) => p.perfumeName.toLowerCase().includes(q.toLowerCase()))
+  if (brand) result = result.filter((p) => p.brand?.brandName === brand)
+  if (gender) result = result.filter((p) => p.targetAudience === gender)
+  if (concentration) result = result.filter((p) => p.concentration === concentration)
 
-    if (brand) {
-      result = result.filter((p) => p.brand?.brandName === brand);
-    }
+  if (sortPrice) {
+    result.sort((a, b) => {
+      if (!a.price) return 1
+      if (!b.price) return -1
+      return sortPrice === "asc" ? a.price - b.price : b.price - a.price
+    })
+  }
 
-    if (gender) {
-      result = result.filter((p) => p.targetAudience === gender);
-    }
+  return result
+}, [perfumes, q, brand, gender, concentration, sortPrice])
 
-    if (sortPrice) {
-      result.sort((a, b) => {
-        if (!a.price) return 1;
-        if (!b.price) return -1;
-        return sortPrice === "asc" ? a.price - b.price : b.price - a.price;
-      });
-    }
-
-    return result;
-  }, [perfumes, q, brand, gender, sortPrice]);
 
   return (
     <div className="perfume-home">
@@ -101,6 +99,22 @@ const [sortPrice, setSortPrice] = useState(undefined);
           </Select>
 
           <Select
+  placeholder="All Concentrations"
+  value={concentration}
+  onChange={setConcentration}
+  allowClear
+  style={{ flex: 1, minWidth: 150 }}
+  popupMatchSelectWidth={false}
+>
+  {concentrations.map((c) => (
+    <Option key={c} value={c}>
+      {c}
+    </Option>
+  ))}
+</Select>
+
+
+          <Select
             placeholder="All Genders"
             value={gender}
             onChange={setGender}
@@ -119,7 +133,7 @@ const [sortPrice, setSortPrice] = useState(undefined);
             onChange={setSortPrice}
             allowClear
             style={{ flex: 1, minWidth: 150 }}
-           popupMatchSelectWidth={false}
+            popupMatchSelectWidth={false}
           >
             <Option value="asc">Low → High</Option>
             <Option value="desc">High → Low</Option>
@@ -147,6 +161,7 @@ const [sortPrice, setSortPrice] = useState(undefined);
                     alt={p.perfumeName}
                     className="product-image"
                   />
+                  {p.concentration && <div className="concentration-badge">{p.concentration}</div>}
                   <div className="product-overlay">
                     <Button className="view-button">View Details</Button>
                   </div>
@@ -156,7 +171,6 @@ const [sortPrice, setSortPrice] = useState(undefined);
                   <p className="product-brand">{p.brand?.brandName || "Premium Brand"}</p>
                   <div className="product-meta">
                     <span className="product-gender">{p.targetAudience || "Unisex"}</span>
-                    {p.concentration && <span className="product-concentration">{p.concentration}</span>}
                   </div>
                   <p className="product-price">{p.price?.toLocaleString() || "N/A"}₫</p>
                 </div>
@@ -166,5 +180,5 @@ const [sortPrice, setSortPrice] = useState(undefined);
         )}
       </div>
     </div>
-  );
+  )
 }

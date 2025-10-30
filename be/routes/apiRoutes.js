@@ -412,6 +412,7 @@ router.get('/profile', verifyToken, async (req, res) => {
         isAdmin: user.isAdmin,
         isDeleted: user.isDeleted,
         deleteReason: user.deleteReason
+        authProvider: user.authProvider,
       }
     });
   } catch (error) {

@@ -1,5 +1,24 @@
 
+/* Google Login Container */
+.google-login-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
 
+/* Override Google button style để match theme */
+.google-login-container > div {
+  width: 100% !important;
+}
+
+.google-login-container iframe {
+  border-radius: 8px !important;
+}
+
+/* Divider styling */
+.ant-divider-inner-text {
+  padding: 0 16px;
+}
 
 /* Perfume Theme - Luxury Authentication Styles */
 
@@ -20,6 +39,8 @@
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
   position: relative;
   overflow: hidden;
+  
+  z-index: 0;         /* đảm bảo không che message */
 }
 
 .auth-decorative-top,

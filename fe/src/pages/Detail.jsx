@@ -51,7 +51,12 @@ export default function Detail() {
         ? perfume.comments.reduce((sum, c) => sum + c.rating, 0) / perfume.comments.length
         : 0
 
-    const hasCommented = user ? perfume.comments?.some((c) => c.author?._id.toString() === user._id.toString()) : false
+    // ✅ FIX: Đổi user._id thành user.id
+    const hasCommented = user && user.id
+        ? perfume.comments?.some((c) => 
+            c.author?._id?.toString() === user.id.toString()
+          )
+        : false
 
     const openCommentModal = (mode = "add", comment = null) => {
         setCommentModal({ visible: true, mode, comment })
@@ -110,8 +115,6 @@ export default function Detail() {
             notification.error({ message: err.response?.data?.message || "An error occurred" })
         }
     }
-
-
 
     return (
         <div className="perfume-detail">
@@ -182,7 +185,6 @@ export default function Detail() {
                         )}
                     </div>
 
-
                     <div className="reviews-list">
                         {perfume.comments?.map((c) => (
                             <div key={c._id} className="review-item">
@@ -192,29 +194,27 @@ export default function Detail() {
                                         <Rate disabled value={c.rating} count={3} className="review-rating" />
                                     </div>
 
-                                    {user && (
+                                    {user && user.id && (
                                         <div className="review-actions">
-                                            {/* Nút Edit chỉ hiển thị cho tác giả comment */}
-                                            {c.author?._id?.toString() === user._id.toString() && (
+                                            {/* ✅ FIX: Đổi user._id thành user.id */}
+                                            {c.author?._id?.toString() === user.id.toString() && (
                                                 <Button size="small" onClick={() => openCommentModal("edit", c)}>
                                                     Edit
                                                 </Button>
                                             )}
-                                            {/* Nút Delete hiển thị cho tác giả hoặc admin */}
-                                            {(c.author?._id?.toString() === user._id.toString() || user.isAdmin) && (
+                                            {/* ✅ FIX: Đổi user._id thành user.id */}
+                                            {(c.author?._id?.toString() === user.id.toString() || user.isAdmin) && (
                                                 <Button size="small" danger onClick={() => handleDeleteComment(c._id)}>
                                                     Delete
                                                 </Button>
                                             )}
                                         </div>
                                     )}
-
                                 </div>
                                 <p className="review-content">{c.content}</p>
                             </div>
                         ))}
                     </div>
-
                 </div>
             </div>
 

@@ -1,31 +1,52 @@
 import { useState, useContext } from "react";
-import { Form, Input, Button, Typography, message } from "antd";
-import { loginUser } from "../api/authApi";
+import { Form, Input, Button, Typography, Divider } from "antd";
+import { GoogleLogin } from '@react-oauth/google';
+import { loginUser, loginWithGoogle } from "../api/authApi";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import toast from "react-hot-toast";
 import "../index.css";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // lấy hàm login từ context
+  const { login } = useContext(AuthContext);
 
+  // Đăng nhập bằng Email/Password
   const onFinish = async (values) => {
     setLoading(true);
     try {
       const res = await loginUser(values);
-      message.success(res.data.message);
-
-      // Lưu user và token vào AuthContext + localStorage
+      toast.success(res.data.message);
       login(res.data.user, res.data.token);
-
-      // Chuyển hướng về Home sau login
       navigate("/");
     } catch (err) {
-      message.error(err.response?.data?.message || "Login thất bại");
+      toast.error(err.response?.data?.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Đăng nhập bằng Google - Thành công
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    try {
+      const res = await loginWithGoogle(credentialResponse.credential);
+      
+      toast.success(res.data.message || "Đăng nhập Google thành công!");
+      login(res.data.user, res.data.token);
+      navigate("/");
+    } catch (err) {
+      console.error("Google login error:", err);
+      toast.error(err.response?.data?.message || "Đăng nhập Google thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Đăng nhập bằng Google - Thất bại
+  const handleGoogleError = () => {
+    toast.error("Đăng nhập Google thất bại. Vui lòng thử lại!");
   };
 
   return (
@@ -40,10 +61,32 @@ export default function Login() {
           <p className="auth-subtitle">Khám phá thế giới hương thơm cao cấp</p>
         </div>
 
+        {/* Google Login Button */}
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+            theme="outline"
+            size="large"
+            text="signin_with"
+            shape="rectangular"
+            
+          />
+        </div>
+
+        <Divider style={{ margin: "24px 0" }}>
+          <span style={{ color: "#999", fontSize: "14px" }}>Hoặc</span>
+        </Divider>
+
+        {/* Email/Password Login Form */}
         <Form layout="vertical" onFinish={onFinish} className="auth-form">
           <Form.Item
             name="email"
-            rules={[{ required: true, message: "Vui lòng nhập email" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" }
+            ]}
           >
             <Input
               placeholder="Email của bạn"

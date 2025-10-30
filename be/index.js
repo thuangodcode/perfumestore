@@ -32,6 +32,7 @@ const perfumeRouter = require('./routes/perfume');
 const authRouter = require('./routes/auth');
 const collectorRouter = require('./routes/collector');
 const commentRouter = require('./routes/comment');
+const adminRouter = require('./routes/adminRoutes');
 
 // ✅ Sử dụng API routes
 app.use('/api/brands', brandRouter);
@@ -39,6 +40,8 @@ app.use('/api/perfumes', perfumeRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/collectors', collectorRouter);
 app.use('/api/comments', commentRouter);
+app.use('/api/admin', adminRouter);
+
 
 // ✅ Route test root
 app.get('/', (req, res) => {
